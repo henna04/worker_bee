@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:worker_bee/view/login_view.dart';
+import 'package:worker_bee/view/login/login_view.dart';
 
 void main() {
   runApp(const MyApp());
