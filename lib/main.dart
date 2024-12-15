@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:worker_bee/view/login/login_view.dart';
+import 'package:worker_bee/view/customNavigation/custom_navigation_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,10 +15,11 @@ class MyApp extends StatelessWidget {
       title: 'Workerbee',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        scaffoldBackgroundColor: const Color(0xffdbdbdb),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const LoginView(),
+      home: const CustomNavigationView(),
     );
   }
 }
