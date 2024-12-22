@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:worker_bee/view/addPost/add_post.dart';
+import 'package:worker_bee/view/chats/chat_view.dart';
 import 'package:worker_bee/view/home/home_view.dart';
+import 'package:worker_bee/view/profile/profile_view.dart';
 import 'package:worker_bee/view/search/search_view.dart';
 
 class CustomNavigationView extends StatefulWidget {
@@ -19,18 +22,12 @@ class _CustomNavigationViewState extends State<CustomNavigationView> {
     return Scaffold(
       body: IndexedStack(
         index: currentIndex,
-        children: [
-          const HomeView(),
-          const SearchView(),
-          Container(
-            color: Colors.amber,
-          ),
-          Container(
-            color: Colors.blue,
-          ),
-          Container(
-            color: Colors.green,
-          ),
+        children: const [
+          HomeView(),
+          SearchView(),
+          PostImageView(),
+          ChatView(),
+          ProfileView(),
         ],
       ),
       bottomNavigationBar: Container(

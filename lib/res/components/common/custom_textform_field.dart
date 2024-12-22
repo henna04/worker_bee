@@ -5,12 +5,14 @@ class CustomTextformField extends StatelessWidget {
     super.key,
     this.controller,
     required this.fieldText,
-    this.validator, this.prefixText,
+    this.validator,
+    this.prefixText, this.maxLine,
   });
   final TextEditingController? controller;
   final String fieldText;
   final String? Function(String?)? validator;
   final String? prefixText;
+  final int? maxLine;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class CustomTextformField extends StatelessWidget {
         labelText: fieldText,
         prefixText: prefixText,
       ),
+      maxLines: maxLine,
     );
   }
 }

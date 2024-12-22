@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:worker_bee/res/components/common/custom_button.dart';
+import 'package:worker_bee/res/components/common/custom_textform_field.dart';
 
 class WorkerDetails extends StatefulWidget {
   const WorkerDetails({super.key});
@@ -184,7 +185,107 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                     SizedBox(
                       height: 50,
                       child: CustomButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          await showModalBottomSheet(
+                            useSafeArea: true,
+                            isScrollControlled: true,
+                            context: context,
+                            builder: (context) => Container(
+                              padding: const EdgeInsets.all(16),
+                              width: double.infinity,
+                              child: Column(
+                                spacing: 10,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Select Date",
+                                    style:
+                                        theme.textTheme.titleMedium!.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 50,
+                                    width: double.infinity,
+                                    child: CustomButton(
+                                      onPressed: () async {
+                                        await showDatePicker(
+                                          context: context,
+                                          initialDate: DateTime.now(),
+                                          firstDate: DateTime.now(),
+                                          lastDate: DateTime(2030),
+                                        );
+                                      },
+                                      btnText: "Select Date",
+                                    ),
+                                  ),
+                                  Text(
+                                    "Select Time",
+                                    style:
+                                        theme.textTheme.titleMedium!.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 50,
+                                    width: double.infinity,
+                                    child: CustomButton(
+                                      onPressed: () async {
+                                        await showTimePicker(
+                                          context: context,
+                                          initialTime: TimeOfDay.now(),
+                                          builder: (BuildContext context,
+                                              Widget? child) {
+                                            return MediaQuery(
+                                              data: MediaQuery.of(context)
+                                                  .copyWith(
+                                                      alwaysUse24HourFormat:
+                                                          false),
+                                              child: child!,
+                                            );
+                                          },
+                                        );
+                                      },
+                                      btnText: "Select Time",
+                                    ),
+                                  ),
+                                  Text(
+                                    "Enter Address",
+                                    style:
+                                        theme.textTheme.titleMedium!.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const CustomTextformField(
+                                    fieldText: "Address",
+                                    maxLine: 3,
+                                  ),
+                                  const Gap(30),
+                                  Flex(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    spacing: 10,
+                                    direction: Axis.horizontal,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text("Cancel"),
+                                      ),
+                                      SizedBox(
+                                        height: 50,
+                                        child: CustomButton(
+                                          onPressed: () {},
+                                          btnText: "Confirm Booking",
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                         btnText: "Book Now",
                       ),
                     ),

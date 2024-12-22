@@ -64,8 +64,8 @@ class _HomeViewState extends State<HomeView> {
                       borderRadius: BorderRadius.circular(30),
                       gradient: LinearGradient(
                         colors: [
-                          theme.colorScheme.primary.withOpacity(.8),
-                          theme.colorScheme.primary.withOpacity(.5),
+                          theme.colorScheme.primary.withValues(alpha: .8),
+                          theme.colorScheme.primary.withValues(alpha: .5),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -103,35 +103,10 @@ class _HomeViewState extends State<HomeView> {
                               ],
                             ),
                             const Gap(10),
-                            // ClipRRect(
-                            //   borderRadius: BorderRadius.circular(10),
-                            //   child: CachedNetworkImage(
-                            //     width: 90,
-                            //     height: 90,
-                            //     imageUrl:
-                            //         "https://img.freepik.com/free-vector/sale-offer-label-banner-discount-offer-promotion_157027-1250.jpg",
-                            //     fit: BoxFit.cover,
-                            //     placeholder: (context, url) =>
-                            //         Shimmer.fromColors(
-                            //       baseColor: Colors.black.withOpacity(0.2),
-                            //       highlightColor: Colors.white54,
-                            //       enabled: true,
-                            //       child: Container(
-                            //         decoration: BoxDecoration(
-                            //           borderRadius:
-                            //               BorderRadius.circular(30),
-                            //           color: Colors.white,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //     errorWidget: (context, url, error) =>
-                            //         const Icon(Icons.error),
-                            //   ),
-                            // ),
                             Image.asset(
                               "assets/images/painter.png",
-                              width: 150,
-                              height: 150,
+                              width: 120,
+                              height: 120,
                               fit: BoxFit.cover,
                             )
                           ],
@@ -255,7 +230,6 @@ class _HomeViewState extends State<HomeView> {
                       direction: Axis.horizontal,
                       children: [
                         ClipRRect(
-                          
                           borderRadius: BorderRadius.circular(15),
                           child: Image.network(
                             "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
