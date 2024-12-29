@@ -10,7 +10,7 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   bool isAvailable = false;
-  bool isVerified = true; // Replace with actual verification status
+  bool isVerified = true;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +52,18 @@ class _ProfileViewState extends State<ProfileView> {
           Card(
             child: SwitchListTile(
               title: const Text("I'm Available for Work"),
+              value: isAvailable,
+              onChanged: (bool value) {
+                setState(() {
+                  isAvailable = value;
+                });
+              },
+              secondary: const Icon(Icons.work),
+            ),
+          ),
+          Card(
+            child: SwitchListTile(
+              title: const Text("Dark Mode"),
               value: isAvailable,
               onChanged: (bool value) {
                 setState(() {
