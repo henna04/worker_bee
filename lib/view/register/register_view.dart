@@ -1,15 +1,15 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:worker_bee/repo/auth_repository.dart';
 import 'package:worker_bee/res/components/common/custom_button.dart';
 import 'package:worker_bee/res/components/common/custom_textform_field.dart';
+import 'package:worker_bee/view/customNavigation/custom_navigation_view.dart';
 import 'package:worker_bee/view/login/login_view.dart';
-import 'package:worker_bee/viewmodel/auth_controller.dart';
-import 'package:worker_bee/viewmodel/services/register_services.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -22,52 +22,89 @@ class _RegisterViewState extends State<RegisterView> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   final phoneController = TextEditingController();
   final placeController = TextEditingController();
-  late final AuthController _authController;
-  File selectedImage = File('');
 
-  @override
-  void initState() {
-    super.initState();
-    _authController = AuthController(
-      AuthRepository(Supabase.instance.client),
-    );
+  File? _image;
+
+  Future<void> _pickImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    } else {
+      // Handle the case where the user cancels the image picker
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No image selected')),
+      );
+    }
   }
 
-  Future<void> _handleRegister() async {
-    // Basic validation
-    if (nameController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        passwordController.text.isEmpty ||
-        phoneController.text.isEmpty ||
-        placeController.text.isEmpty) {
+  Future<void> _register() async {
+    if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
+        SnackBar(content: Text('Passwords do not match')),
       );
       return;
     }
 
-    final success = await _authController.registerWithEmail(
-      email: emailController.text,
-      password: passwordController.text,
-      username: nameController.text,
-      phone: phoneController.text,
-      place: placeController.text,
-      profileImage: selectedImage.path.isEmpty ? null : selectedImage,
-    );
+    try {
+      // Register the user
+      final response = await Supabase.instance.client.auth.signUp(
+        email: emailController.text,
+        password: passwordController.text,
+      );
 
-    if (success && mounted) {
+      if (response.user != null) {
+        // Upload image to Supabase Storage
+        if (_image != null) {
+          final fileExtension = _image!.path.split('.').last;
+          final fileName = '${response.user!.id}.$fileExtension';
+          final filePath = 'user_images/$fileName';
+
+          await Supabase.instance.client.storage
+              .from('user_images')
+              .upload(filePath, _image!);
+
+          // Get the public URL of the uploaded image
+          final imageUrl = Supabase.instance.client.storage
+              .from('user_images')
+              .getPublicUrl(filePath);
+
+          // Insert user details into the profiles table
+          await Supabase.instance.client.from('users').upsert({
+            'id': response.user!.id,
+            'user_name': nameController.text,
+            'email': emailController.text,
+            'phone_no': phoneController.text,
+            'place': placeController.text,
+            'image_url': imageUrl,
+          });
+        } else {
+          // Insert user details without an image
+          await Supabase.instance.client.from('users').upsert({
+            'id': response.user!.id,
+            'user_name': nameController.text,
+            'email': emailController.text,
+            'phone_no': emailController.text,
+            'place': emailController.text,
+          });
+        }
+
+        // Navigate to the home screen
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CustomNavigationView(),
+            ));
+      }
+    } catch (e) {
+      log(e.toString());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful! Please login.')),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginView()),
-      );
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_authController.error ?? 'Registration failed')),
+        SnackBar(content: Text('Registration failed: $e')),
       );
     }
   }
@@ -101,24 +138,18 @@ class _RegisterViewState extends State<RegisterView> {
                     Positioned(
                       child: CircleAvatar(
                         radius: 60,
-                        backgroundImage: selectedImage == File('') ||
-                                selectedImage.path == ""
-                            ? const NetworkImage(
-                                "https://i.pinimg.com/736x/1b/2e/31/1b2e314e767a957a44ed8f992c6d9098.jpg",
-                              )
-                            : FileImage(selectedImage),
+                        backgroundImage: _image != null &&
+                                _image!.path.isNotEmpty
+                            ? FileImage(_image!)
+                            : const NetworkImage(
+                                "https://i.pinimg.com/736x/1b/2e/31/1b2e314e767a957a44ed8f992c6d9098.jpg"),
                       ),
                     ),
                     Positioned(
                       bottom: -5,
                       right: -5,
                       child: IconButton(
-                        onPressed: () async {
-                          var val = await RegisterServices().pickImage(context);
-                          setState(() {
-                            selectedImage = val;
-                          });
-                        },
+                        onPressed: _pickImage,
                         icon: Card(
                           child: Icon(
                             Icons.add_circle,
@@ -147,6 +178,11 @@ class _RegisterViewState extends State<RegisterView> {
               ),
               const Gap(20),
               CustomTextformField(
+                controller: confirmPasswordController,
+                fieldText: "Confirm password",
+              ),
+              const Gap(20),
+              CustomTextformField(
                 controller: phoneController,
                 prefixText: "+91",
                 fieldText: "Phone",
@@ -161,7 +197,7 @@ class _RegisterViewState extends State<RegisterView> {
                 height: 50,
                 width: double.infinity,
                 child: CustomButton(
-                  onPressed: _handleRegister,
+                  onPressed: _register,
                   btnText: "Register",
                 ),
               ),

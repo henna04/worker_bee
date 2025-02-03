@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:worker_bee/view/login/login_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -11,6 +13,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   bool isAvailable = false;
   bool isVerified = true;
+  final supabase = Supabase.instance.client;
 
   @override
   Widget build(BuildContext context) {
@@ -122,9 +125,7 @@ class _ProfileViewState extends State<ProfileView> {
             child: ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
-              onTap: () {
-                // Handle logout tap
-              },
+              onTap: _logout,
             ),
           ),
           Card(
@@ -139,5 +140,17 @@ class _ProfileViewState extends State<ProfileView> {
         ],
       ),
     );
+  }
+
+  Future<void> _logout() async {
+    await supabase.auth.signOut().then(
+          (value) => Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LoginView(),
+            ),
+            (route) => false,
+          ),
+        );
   }
 }

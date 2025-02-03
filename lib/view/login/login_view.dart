@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:worker_bee/repo/auth_repository.dart';
 import 'package:worker_bee/res/components/common/custom_button.dart';
 import 'package:worker_bee/res/components/common/custom_textform_field.dart';
+import 'package:worker_bee/view/customNavigation/custom_navigation_view.dart';
 import 'package:worker_bee/view/register/register_view.dart';
-import 'package:worker_bee/viewmodel/auth_controller.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -18,47 +17,25 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  late final AuthController _authController;
 
-  @override
-  void initState() {
-    super.initState();
-    _authController = AuthController(
-      AuthRepository(Supabase.instance.client),
-    );
-  }
-
-  Future<void> _handleLogin() async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
+  Future<void> _login() async {
+    try {
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        email: emailController.text,
+        password: passwordController.text,
       );
-      return;
-    }
-
-    final success = await _authController.signInWithEmail(
-      emailController.text,
-      passwordController.text,
-    );
-
-    if (success && mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
-    } else if (mounted) {
+      if (response.user != null) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CustomNavigationView(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_authController.error ?? 'Login failed')),
-      );
-    }
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    final success = await _authController.signInWithGoogle();
-
-    if (success && mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(_authController.error ?? 'Google sign in failed')),
+        SnackBar(content: Text('Login failed: $e')),
       );
     }
   }
@@ -106,7 +83,7 @@ class _LoginViewState extends State<LoginView> {
                 height: 50,
                 width: double.infinity,
                 child: CustomButton(
-                  onPressed: _handleLogin,
+                  onPressed: _login,
                   btnText: "Login",
                 ),
               ),
@@ -136,7 +113,7 @@ class _LoginViewState extends State<LoginView> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  onPressed: _handleGoogleSignIn,
+                  onPressed: () {},
                 ),
               ),
               const Gap(20),

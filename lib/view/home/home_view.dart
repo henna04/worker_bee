@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:worker_bee/res/components/constants/categories_list.dart';
 import 'package:worker_bee/view/categories/all_categories_view.dart';
 import 'package:worker_bee/view/favorite/favorite_screen.dart';
@@ -16,6 +19,30 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   List<String> items = ["Offer", "Discount"];
+  List<Map<String, dynamic>> allCategories = [];
+  List<Map<String, dynamic>> ads = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories();
+    _fetchAds();
+  }
+
+  Future<void> _fetchCategories() async {
+    final response = await Supabase.instance.client.from('categories').select();
+    setState(() {
+      allCategories = response;
+    });
+  }
+
+  Future<void> _fetchAds() async {
+    final response = await Supabase.instance.client.from('ads').select();
+    setState(() {
+      ads = response;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -50,7 +77,7 @@ class _HomeViewState extends State<HomeView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CarouselSlider(
-              items: items.map((ad) {
+              items: ads.map((ad) {
                 return InkWell(
                   onTap: () {},
                   child: Container(
@@ -84,7 +111,7 @@ class _HomeViewState extends State<HomeView> {
                                 SizedBox(
                                   width: size.width * .4,
                                   child: Text(
-                                    '30% Discount',
+                                    ad['title'],
                                     style: theme.textTheme.titleLarge!.copyWith(
                                       color: theme.colorScheme.onPrimary,
                                       fontWeight: FontWeight.bold,
@@ -94,7 +121,7 @@ class _HomeViewState extends State<HomeView> {
                                 SizedBox(
                                   width: size.width * .43,
                                   child: Text(
-                                    "Book any painter from app and get Discount.",
+                                    ad['description'] ?? "",
                                     style: theme.textTheme.bodyLarge!.copyWith(
                                       color: theme.colorScheme.onPrimary,
                                     ),
@@ -103,8 +130,8 @@ class _HomeViewState extends State<HomeView> {
                               ],
                             ),
                             const Gap(10),
-                            Image.asset(
-                              "assets/images/painter.png",
+                            Image.network(
+                              ad['image_url'],
                               width: 120,
                               height: 120,
                               fit: BoxFit.cover,
@@ -157,7 +184,7 @@ class _HomeViewState extends State<HomeView> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: categories
+                children: allCategories
                     .map(
                       (category) => Card(
                         child: Container(
@@ -166,11 +193,12 @@ class _HomeViewState extends State<HomeView> {
                             children: [
                               CircleAvatar(
                                 radius: 50,
-                                backgroundImage: AssetImage(category.imageUrl),
+                                backgroundImage:
+                                    NetworkImage(category['image_url']),
                               ),
                               const Gap(10),
                               Text(
-                                category.title,
+                                category['title'],
                                 style: theme.textTheme.bodyLarge!.copyWith(
                                   color: theme.colorScheme.onSurface,
                                   fontWeight: FontWeight.w600,
@@ -229,15 +257,15 @@ class _HomeViewState extends State<HomeView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       direction: Axis.horizontal,
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: Image.network(
-                            "https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg",
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                        // ClipRRect(
+                        //   borderRadius: BorderRadius.circular(15),
+                        //   child: Image.network(
+                        //     "https://www.wikihow.com/images/thumb/9/90/What_type_of_person_are_you_quiz_pic.png/1200px-What_type_of_person_are_you_quiz_pic.png",
+                        //     width: 100,
+                        //     height: 100,
+                        //     fit: BoxFit.cover,
+                        //   ),
+                        // ),
                         const Gap(10),
                         Expanded(
                           child: Column(
