@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:sign_in_button/sign_in_button.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:worker_bee/repo/auth_repository.dart';
 import 'package:worker_bee/res/components/common/custom_button.dart';
 import 'package:worker_bee/res/components/common/custom_textform_field.dart';
 import 'package:worker_bee/view/login/login_view.dart';
+import 'package:worker_bee/viewmodel/auth_controller.dart';
 import 'package:worker_bee/viewmodel/services/register_services.dart';
 
 class RegisterView extends StatefulWidget {
@@ -21,8 +24,54 @@ class _RegisterViewState extends State<RegisterView> {
   final passwordController = TextEditingController();
   final phoneController = TextEditingController();
   final placeController = TextEditingController();
-
+  late final AuthController _authController;
   File selectedImage = File('');
+
+  @override
+  void initState() {
+    super.initState();
+    _authController = AuthController(
+      AuthRepository(Supabase.instance.client),
+    );
+  }
+
+  Future<void> _handleRegister() async {
+    // Basic validation
+    if (nameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        phoneController.text.isEmpty ||
+        placeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    final success = await _authController.registerWithEmail(
+      email: emailController.text,
+      password: passwordController.text,
+      username: nameController.text,
+      phone: phoneController.text,
+      place: placeController.text,
+      profileImage: selectedImage.path.isEmpty ? null : selectedImage,
+    );
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful! Please login.')),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginView()),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_authController.error ?? 'Registration failed')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -112,7 +161,7 @@ class _RegisterViewState extends State<RegisterView> {
                 height: 50,
                 width: double.infinity,
                 child: CustomButton(
-                  onPressed: () {},
+                  onPressed: _handleRegister,
                   btnText: "Register",
                 ),
               ),

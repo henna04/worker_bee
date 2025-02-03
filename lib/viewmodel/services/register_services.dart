@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 class RegisterServices {
   Future<File> pickImage(BuildContext context) async {
     final picker = await ImagePicker().pickImage(
-      source: ImageSource.camera,
+      source: ImageSource.gallery,
       imageQuality: 50,
     );
     if (picker == null) {

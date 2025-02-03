@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:sign_in_button/sign_in_button.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:worker_bee/repo/auth_repository.dart';
 import 'package:worker_bee/res/components/common/custom_button.dart';
 import 'package:worker_bee/res/components/common/custom_textform_field.dart';
 import 'package:worker_bee/view/register/register_view.dart';
+import 'package:worker_bee/viewmodel/auth_controller.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -15,6 +18,51 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  late final AuthController _authController;
+
+  @override
+  void initState() {
+    super.initState();
+    _authController = AuthController(
+      AuthRepository(Supabase.instance.client),
+    );
+  }
+
+  Future<void> _handleLogin() async {
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    final success = await _authController.signInWithEmail(
+      emailController.text,
+      passwordController.text,
+    );
+
+    if (success && mounted) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_authController.error ?? 'Login failed')),
+      );
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    final success = await _authController.signInWithGoogle();
+
+    if (success && mounted) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(_authController.error ?? 'Google sign in failed')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -40,7 +88,7 @@ class _LoginViewState extends State<LoginView> {
               ),
               const Gap(20),
               CustomTextformField(
-                controller: emailController,
+                controller: passwordController,
                 fieldText: "Password",
               ),
               const Gap(20),
@@ -58,7 +106,7 @@ class _LoginViewState extends State<LoginView> {
                 height: 50,
                 width: double.infinity,
                 child: CustomButton(
-                  onPressed: () {},
+                  onPressed: _handleLogin,
                   btnText: "Login",
                 ),
               ),
@@ -88,7 +136,7 @@ class _LoginViewState extends State<LoginView> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  onPressed: () {},
+                  onPressed: _handleGoogleSignIn,
                 ),
               ),
               const Gap(20),
@@ -118,7 +166,6 @@ class _LoginViewState extends State<LoginView> {
           ),
         ),
       ),
-     
     );
   }
 }
