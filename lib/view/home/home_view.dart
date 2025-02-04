@@ -4,7 +4,6 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:worker_bee/res/components/constants/categories_list.dart';
 import 'package:worker_bee/view/categories/all_categories_view.dart';
 import 'package:worker_bee/view/favorite/favorite_screen.dart';
 import 'package:worker_bee/view/topWorkers/top_workers.dart';
@@ -31,6 +30,7 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _fetchCategories() async {
     final response = await Supabase.instance.client.from('categories').select();
+    log(response.toString());
     setState(() {
       allCategories = response;
     });
@@ -104,37 +104,37 @@ class _HomeViewState extends State<HomeView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Gap(10),
-                                SizedBox(
-                                  width: size.width * .4,
-                                  child: Text(
+                            Expanded(
+                              flex: 4,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Gap(10),
+                                  Text(
                                     ad['title'],
                                     style: theme.textTheme.titleLarge!.copyWith(
                                       color: theme.colorScheme.onPrimary,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ),
-                                SizedBox(
-                                  width: size.width * .43,
-                                  child: Text(
+                                  Text(
                                     ad['description'] ?? "",
                                     style: theme.textTheme.bodyLarge!.copyWith(
                                       color: theme.colorScheme.onPrimary,
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             const Gap(10),
-                            Image.network(
-                              ad['image_url'],
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
+                            Expanded(
+                              flex: 2,
+                              child: Image.network(
+                                ad['image_url'],
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                              ),
                             )
                           ],
                         )
@@ -144,7 +144,7 @@ class _HomeViewState extends State<HomeView> {
                 );
               }).toList(),
               options: CarouselOptions(
-                aspectRatio: 16 / 9,
+                aspectRatio: 1.5,
                 viewportFraction: 1,
                 initialPage: 0,
                 enableInfiniteScroll: true,
