@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:worker_bee/adminView/ad_management_screen.dart';
+import 'package:worker_bee/adminView/categories_management_screen.dart';
 import 'package:worker_bee/adminView/job_management_screen.dart';
 import 'package:worker_bee/adminView/user_management_screen.dart';
 import 'package:worker_bee/adminView/worker_management_screen.dart';
@@ -20,11 +22,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       stats: '245 Total',
     ),
     DashboardItem(
-      title: 'Workers',
+      title: 'Workers Application',
       icon: Icons.work,
       screen: const WorkerManagementScreen(),
       color: Colors.green,
       stats: '128 Active',
+    ),
+    DashboardItem(
+      title: 'Ads',
+      icon: Icons.ad_units,
+      screen: const AdManagementScreen(),
+      color: Colors.brown,
+      stats: '15 Active',
+    ),
+    DashboardItem(
+      title: 'Categories',
+      icon: Icons.category,
+      screen: const CategoryManagementScreen(),
+      color: Colors.indigo,
+      stats: '8 Total',
     ),
     DashboardItem(
       title: 'Jobs',
@@ -71,7 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 16.0,
                 mainAxisSpacing: 16.0,
-                childAspectRatio: 1.0,
+                childAspectRatio: .8,
               ),
               itemCount: _dashboardItems.length,
               padding: const EdgeInsets.all(16.0),
