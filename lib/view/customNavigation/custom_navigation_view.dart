@@ -57,10 +57,10 @@ class _CustomNavigationViewState extends State<CustomNavigationView> {
     return Scaffold(
       body: IndexedStack(
         index: currentIndex,
-        children: const [
+        children: [
           HomeView(),
           SearchView(),
-          PostImageView(),
+          if (_isWorkerVerified) PostImageView(),
           ChatView(),
           ProfileView(),
         ],
@@ -87,7 +87,7 @@ class _CustomNavigationViewState extends State<CustomNavigationView> {
               icon: Icons.search,
               text: 'Search',
             ),
-            if (_isWorkerVerified) 
+            if (_isWorkerVerified)
               const GButton(
                 icon: Icons.add_circle_outline,
                 text: 'Add Post',

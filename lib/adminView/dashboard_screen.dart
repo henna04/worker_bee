@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:worker_bee/adminView/ad_management_screen.dart';
+import 'package:worker_bee/adminView/admin_report_screen.dart';
 import 'package:worker_bee/adminView/categories_management_screen.dart';
 import 'package:worker_bee/adminView/job_management_screen.dart';
 import 'package:worker_bee/adminView/user_management_screen.dart';
@@ -24,7 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     DashboardItem(
       title: 'Workers Application',
       icon: Icons.work,
-      screen: const WorkerManagementScreen(),
+      screen: const WorkerApplicationsScreen(),
       color: Colors.green,
       stats: '128 Active',
     ),
@@ -59,7 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     DashboardItem(
       title: 'Reports',
       icon: Icons.report,
-      screen: const ReportsScreen(),
+      screen: const AdminReportScreen(),
       color: Colors.red,
       stats: 'Generate',
     ),
@@ -193,18 +194,6 @@ class AnalyticsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Analytics')),
       body: const Center(child: Text('Analytics Dashboard')),
-    );
-  }
-}
-
-class ReportsScreen extends StatelessWidget {
-  const ReportsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Reports')),
-      body: const Center(child: Text('Reports Generation')),
     );
   }
 }

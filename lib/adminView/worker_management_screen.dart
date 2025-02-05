@@ -1,81 +1,143 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class WorkerManagementScreen extends StatelessWidget {
-  const WorkerManagementScreen({super.key});
+class WorkerApplicationsScreen extends StatefulWidget {
+  const WorkerApplicationsScreen({super.key});
+
+  @override
+  State<WorkerApplicationsScreen> createState() =>
+      _WorkerApplicationsScreenState();
+}
+
+class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
+  final _supabase = Supabase.instance.client;
+  List<Map<String, dynamic>> _applications = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchApplications();
+  }
+
+  Future<void> _fetchApplications() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await _supabase
+          .from('worker_application')
+          .select('*')
+          .order('created_at', ascending: false);
+
+      setState(() {
+        _applications = List<Map<String, dynamic>>.from(response);
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching applications: $e')),
+      );
+    }
+  }
+
+  Future<void> _updateApplicationStatus(String id, String status) async {
+    try {
+      await _supabase
+          .from('worker_application')
+          .update({'status': status}).eq('id', id);
+
+      _fetchApplications();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating status: $e')),
+      );
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'approved':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Worker Management'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Implement search functionality
-            },
-          ),
-        ],
+        title: Text('Worker Applications'),
       ),
-      body: ListView.builder(
-        itemCount: 2,
-        itemBuilder: (context, index) {
-          return WorkerTile(
-            name: "worker1",
-            skills: "Flutter",
-            isVerified: true,
-            onVerify: () {},
-            onBlock: () {},
-          );
-        },
-      ),
-    );
-  }
-}
-
-class WorkerTile extends StatelessWidget {
-  final String name;
-  final String skills;
-  final bool isVerified;
-  final VoidCallback onVerify;
-  final VoidCallback onBlock;
-
-  const WorkerTile({super.key, 
-    required this.name,
-    required this.skills,
-    required this.isVerified,
-    required this.onVerify,
-    required this.onBlock,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: ListTile(
-        title: Text(name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Skills: $skills'),
-            Text('Status: ${isVerified ? 'Verified' : 'Not Verified'}'),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.verified,
-                  color: isVerified ? Colors.green : Colors.grey),
-              onPressed: onVerify,
-            ),
-            IconButton(
-              icon: const Icon(Icons.block, color: Colors.red),
-              onPressed: onBlock,
-            ),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _applications.isEmpty
+              ? Center(child: Text('No applications found'))
+              : ListView.builder(
+                  itemCount: _applications.length,
+                  itemBuilder: (context, index) {
+                    final app = _applications[index];
+                    return Card(
+                      margin: EdgeInsets.all(8),
+                      child: ExpansionTile(
+                        title: Text(app['profession'] ?? 'Unknown Profession'),
+                        subtitle: Text(
+                          app['status'] ?? 'No Status',
+                          style: TextStyle(
+                              color: _getStatusColor(app['status'] ?? '')),
+                        ),
+                        trailing: Text(DateTime.parse(app['created_at'])
+                            .toString()
+                            .split(' ')[0]),
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Experience: ${app['experience']}'),
+                                SizedBox(height: 8),
+                                Text('Skills: ${app['skills']}'),
+                                SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: app['status'] != 'approved'
+                                          ? () => _updateApplicationStatus(
+                                              app['id'], 'approved')
+                                          : null,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                      ),
+                                      child: Text('Approve'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: app['status'] != 'rejected'
+                                          ? () => _updateApplicationStatus(
+                                              app['id'], 'rejected')
+                                          : null,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                      ),
+                                      child: Text('Reject'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

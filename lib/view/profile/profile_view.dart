@@ -1,7 +1,13 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:worker_bee/view/login/login_view.dart';
+import 'package:worker_bee/view/profile/bookings_ecreen.dart';
+import 'package:worker_bee/view/profile/report_screen.dart';
+import 'package:worker_bee/view/profile/user_profile_screen.dart';
+import 'package:worker_bee/view/profile/worker_application_screen.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -14,6 +20,30 @@ class _ProfileViewState extends State<ProfileView> {
   bool isAvailable = false;
   bool isVerified = true;
   final supabase = Supabase.instance.client;
+  @override
+  void initState() {
+    super.initState();
+    _checkVerificationStatus();
+  }
+
+  Future<void> _checkVerificationStatus() async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId != null) {
+      try {
+        final response = await supabase
+            .from('users')
+            .select('is_verified')
+            .eq('id', userId)
+            .single();
+
+        log("ddd" + response.toString());
+
+        setState(() => isVerified = response['is_verified'] ?? false);
+      } catch (e) {
+        print('Error fetching verification status: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +68,24 @@ class _ProfileViewState extends State<ProfileView> {
               leading: const Icon(Icons.account_circle),
               title: const Text('Account'),
               onTap: () {
-                // Handle account tap
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfileScreen(),
+                    ));
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.book_online),
+              title: const Text('Bookings'),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BookedWorkersScreen(),
+                    ));
               },
             ),
           ),
@@ -49,6 +96,19 @@ class _ProfileViewState extends State<ProfileView> {
                   isVerified ? 'Account Verified' : 'Account Not Verified'),
               onTap: () {
                 // Handle verification status tap
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.settings_applications),
+              title: const Text("Worker Application"),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WorkerApplicationScreen(),
+                    ));
               },
             ),
           ),
@@ -99,7 +159,10 @@ class _ProfileViewState extends State<ProfileView> {
               leading: const Icon(Icons.bug_report),
               title: const Text('Report a Bug'),
               onTap: () {
-                // Handle report a bug tap
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ReportScreen()),
+                );
               },
             ),
           ),
