@@ -8,6 +8,7 @@ import 'package:worker_bee/view/categories/all_categories_view.dart';
 import 'package:worker_bee/view/favorite/favorite_screen.dart';
 import 'package:worker_bee/view/topWorkers/top_workers.dart';
 import 'package:worker_bee/view/workerDetails/worker_details.dart';
+import 'package:worker_bee/view/workers_list_screen.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -203,25 +204,35 @@ class _HomeViewState extends State<HomeView> {
               child: Row(
                 children: allCategories
                     .map(
-                      (category) => Card(
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundImage:
-                                    NetworkImage(category['image_url']),
-                              ),
-                              const Gap(10),
-                              Text(
-                                category['title'],
-                                style: theme.textTheme.bodyLarge!.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
+                      (category) => InkWell(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => WorkersListScreen(
+                                    category: category['title']),
+                              ));
+                        },
+                        child: Card(
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            child: Column(
+                              children: [
+                                CircleAvatar(
+                                  radius: 50,
+                                  backgroundImage:
+                                      NetworkImage(category['image_url']),
                                 ),
-                              )
-                            ],
+                                const Gap(10),
+                                Text(
+                                  category['title'],
+                                  style: theme.textTheme.bodyLarge!.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -265,7 +276,8 @@ class _HomeViewState extends State<HomeView> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => WorkerDetails(workerId: worker['id']),
+                        builder: (context) =>
+                            WorkerDetails(workerId: worker['id']),
                       ),
                     );
                   },
