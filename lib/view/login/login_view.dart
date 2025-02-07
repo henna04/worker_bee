@@ -24,7 +24,28 @@ class _LoginViewState extends State<LoginView> {
         email: emailController.text,
         password: passwordController.text,
       );
+
       if (response.user != null) {
+        // Check if user is banned
+        final userData = await Supabase.instance.client
+            .from('users')
+            .select('is_banned')
+            .eq('id', response.user!.id)
+            .single();
+
+        if (userData['is_banned'] == true) {
+          // Sign out the user
+          await Supabase.instance.client.auth.signOut();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Your account has been banned'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(

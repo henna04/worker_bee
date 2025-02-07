@@ -89,8 +89,8 @@ class _RegisterViewState extends State<RegisterView> {
             'id': response.user!.id,
             'user_name': nameController.text,
             'email': emailController.text,
-            'phone_no': emailController.text,
-            'place': emailController.text,
+            'phone_no': phoneController.text,
+            'place': placeController.text,
           });
         }
 

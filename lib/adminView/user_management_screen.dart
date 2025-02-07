@@ -24,8 +24,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   Future<void> _fetchWorkers() async {
     try {
       final response = await _supabase.from('users').select('''
-        id, user_name, email, is_banned, image_url
-      ''');
+          id, user_name, email, is_banned, image_url
+        ''').neq('id', _supabase.auth.currentUser!.id);
 
       setState(() {
         _workers = response;
@@ -39,14 +39,31 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   Future<void> _toggleBanWorker(String workerId, bool isBanned) async {
     try {
-      await _supabase
+      log('Attempting to update user $workerId, current ban status: $isBanned');
+      final result = await _supabase
           .from('users')
-          .update({'is_banned': !isBanned}).eq('id', workerId);
+          .update({'is_banned': !isBanned}).match({'id': workerId});
 
-      // Refresh the list after updating
-      _fetchWorkers();
+      log('Update result: $result');
+
+      await _fetchWorkers();
+
+      // Optional: Show a snackbar to confirm action
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('User ${!isBanned ? 'banned' : 'unbanned'} successfully'),
+        ),
+      );
     } catch (e) {
       log('Error updating worker status: $e');
+      log('Detailed error updating worker status: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update user status: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

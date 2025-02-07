@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -76,51 +78,32 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
-  Future<void> _createPost() async {
-    if (_postController.text.trim().isEmpty) return;
-
-    try {
-      final userId = _supabase.auth.currentUser!.id;
-      await _supabase.from('posts').insert({
-        'user_id': userId,
-        'content': _postController.text.trim(),
-        'created_at': DateTime.now().toIso8601String(),
-      });
-
-      _postController.clear();
-      await _fetchUserPosts();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating post: ${e.toString()}')),
-      );
-    }
-  }
-
   Future<void> _updateProfile() async {
     try {
+      final userId = _supabase.auth.currentUser!.id;
       String? imageUrl;
+
       if (_imageFile != null) {
-        final userId = _supabase.auth.currentUser!.id;
-        final fileExt = _imageFile!.path.split('.').last;
-        final fileName = '$userId/profile.$fileExt';
+        final fileExtension = _imageFile!.path.split('.').last;
+        final fileName = '$userId.$fileExtension';
+        final filePath = 'user_images/$fileName';
 
-        // Upload image
         await _supabase.storage.from('user_images').upload(
-              fileName,
-              _imageFile!,
-              fileOptions: FileOptions(upsert: true),
-            );
+            filePath, _imageFile!,
+            fileOptions: FileOptions(upsert: true));
 
-        // Get public URL
-        imageUrl = _supabase.storage.from('user_images').getPublicUrl(fileName);
+        imageUrl = _supabase.storage.from('user_images').getPublicUrl(filePath);
       }
 
-      // Update user profile
-      await _supabase.from('users').update({
+      final updateData = {
         if (imageUrl != null) 'image_url': imageUrl,
-      }).eq('id', _supabase.auth.currentUser!.id);
+        'user_name': _userData['user_name'],
+        'phone_no': _userData['phone_no'],
+        'profession': _userData['profession'],
+        'place': _userData['place'],
+      };
 
-      // Refresh user data
+      await _supabase.from('users').update(updateData).eq('id', userId);
       await _fetchUserDetails();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -198,7 +181,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: _imageFile != null ? _updateProfile : null,
+                    onPressed: _showUpdateProfileDialog,
                     child: const Text('Update Profile'),
                   ),
                 ],
@@ -259,6 +242,104 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _showUpdateProfileDialog() async {
+    final nameController = TextEditingController(text: _userData['user_name']);
+    final phoneController = TextEditingController(text: _userData['phone_no']);
+    final professionController =
+        TextEditingController(text: _userData['profession']);
+    final placeController = TextEditingController(text: _userData['place']);
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Update Profile'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Profile Image Selection
+              GestureDetector(
+                onTap: () async {
+                  final pickedFile = await ImagePicker()
+                      .pickImage(source: ImageSource.gallery);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _imageFile = File(pickedFile.path);
+                    });
+                  }
+                },
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundImage: _imageFile != null
+                      ? FileImage(_imageFile!)
+                      : (_userData['image_url'] != null
+                          ? NetworkImage(_userData['image_url'])
+                          : null),
+                  child: _imageFile == null && _userData['image_url'] == null
+                      ? Icon(Icons.camera_alt)
+                      : null,
+                ),
+              ),
+              SizedBox(height: 16),
+
+              // Text Fields for Profile Update
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  prefixIcon: Icon(Icons.person),
+                ),
+              ),
+              TextField(
+                controller: phoneController,
+                decoration: InputDecoration(
+                  labelText: 'Phone',
+                  prefixIcon: Icon(Icons.phone),
+                ),
+              ),
+              TextField(
+                controller: professionController,
+                decoration: InputDecoration(
+                  labelText: 'Profession',
+                  prefixIcon: Icon(Icons.work),
+                ),
+              ),
+              TextField(
+                controller: placeController,
+                decoration: InputDecoration(
+                  labelText: 'Place',
+                  prefixIcon: Icon(Icons.location_on),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Update userData with new values
+              _userData['user_name'] = nameController.text;
+              _userData['phone_no'] = phoneController.text;
+              _userData['profession'] = professionController.text;
+              _userData['place'] = placeController.text;
+
+              // Call update profile method
+              await _updateProfile();
+
+              // Close dialog
+              Navigator.of(context).pop();
+            },
+            child: Text('Update'),
+          ),
+        ],
       ),
     );
   }

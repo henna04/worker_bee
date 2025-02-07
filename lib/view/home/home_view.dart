@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:worker_bee/view/categories/all_categories_view.dart';
 import 'package:worker_bee/view/favorite/favorite_screen.dart';
+import 'package:worker_bee/view/favorite_button.dart';
 import 'package:worker_bee/view/topWorkers/top_workers.dart';
 import 'package:worker_bee/view/workerDetails/worker_details.dart';
 import 'package:worker_bee/view/workers_list_screen.dart';
@@ -51,7 +52,10 @@ class _HomeViewState extends State<HomeView> {
       final response = await Supabase.instance.client
           .from('users')
           .select()
-          .eq('is_verified', true); // Fetch only verified workers
+          .eq('is_verified', true)
+          .neq('id', Supabase.instance.client.auth.currentUser!.id)
+          .order('ratings',
+              ascending: false); // Sort by ratings in descending order
       log('Workers fetched: $response');
       setState(() {
         workers = response;
@@ -81,7 +85,7 @@ class _HomeViewState extends State<HomeView> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const FavoriteScreen(),
+                      builder: (context) => FavoritesScreen(),
                     ));
               },
               icon: const Icon(
@@ -327,12 +331,7 @@ class _HomeViewState extends State<HomeView> {
                                         ),
                                       ],
                                     ),
-                                    IconButton(
-                                      onPressed: () {
-                                        // Add to favorites
-                                      },
-                                      icon: const Icon(Icons.favorite_outline),
-                                    ),
+                                    FavoriteButton(workerId: worker['id'])
                                   ],
                                 ),
                                 const Gap(10),

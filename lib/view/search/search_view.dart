@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:worker_bee/view/favorite_button.dart';
 import 'package:worker_bee/view/workerDetails/worker_details.dart';
 
 class SearchView extends StatefulWidget {
@@ -143,13 +144,7 @@ class _SearchViewState extends State<SearchView> {
                                           ),
                                         ],
                                       ),
-                                      IconButton(
-                                        onPressed: () {
-                                          // Add to favorites
-                                        },
-                                        icon:
-                                            const Icon(Icons.favorite_outline),
-                                      ),
+                                      FavoriteButton(workerId: worker['id']),
                                     ],
                                   ),
                                   const Gap(10),

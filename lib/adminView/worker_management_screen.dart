@@ -26,7 +26,7 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
     try {
       final response = await _supabase
           .from('worker_application')
-          .select('*')
+          .select('*, users(user_name, email, phone_no, place)')
           .order('created_at', ascending: false);
 
       setState(() {
@@ -43,12 +43,41 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
 
   Future<void> _updateApplicationStatus(String id, String status) async {
     try {
-      await _supabase
+      // Update application status
+      final applicationResponse = await _supabase
           .from('worker_application')
-          .update({'status': status}).eq('id', id);
+          .update({'status': status})
+          .eq('id', id)
+          .select();
+      print('Application update response: $applicationResponse');
 
-      _fetchApplications();
+      // Get application details
+      final application = await _supabase
+          .from('worker_application')
+          .select('user_id, profession')
+          .eq('id', id)
+          .single();
+      print('Application details: $application');
+
+      // Update user verification status and profession
+      final userResponse = await _supabase
+          .from('users')
+          .update({
+            'is_verified': status == 'approved',
+            'profession':
+                status == 'approved' ? application['profession'] : null
+          })
+          .eq('id', application['user_id'])
+          .select();
+      print('User update response: $userResponse');
+
+      await _fetchApplications();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Application ${status} successfully')),
+      );
     } catch (e) {
+      print('Error updating status: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error updating status: $e')),
       );
@@ -100,6 +129,24 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // User Details Section
+                                Text(
+                                  'Applicant Details',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                SizedBox(height: 8),
+                                _buildDetailRow(
+                                    'Name', app['users']['user_name'] ?? 'N/A'),
+                                _buildDetailRow(
+                                    'Email', app['users']['email'] ?? 'N/A'),
+                                _buildDetailRow(
+                                    'Phone', app['users']['phone_no'] ?? 'N/A'),
+                                _buildDetailRow(
+                                    'Place', app['users']['place'] ?? 'N/A'),
+
+                                // Existing Application Details
+                                SizedBox(height: 16),
                                 Text('Experience: ${app['experience']}'),
                                 SizedBox(height: 8),
                                 Text('Skills: ${app['skills']}'),
@@ -138,6 +185,21 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                     );
                   },
                 ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Expanded(child: Text(value)),
+        ],
+      ),
     );
   }
 }

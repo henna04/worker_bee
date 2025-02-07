@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:worker_bee/view/feedback_screen.dart';
 import 'package:worker_bee/view/login/login_view.dart';
 import 'package:worker_bee/view/profile/bookings_ecreen.dart';
 import 'package:worker_bee/view/profile/report_screen.dart';
@@ -171,7 +172,11 @@ class _ProfileViewState extends State<ProfileView> {
               leading: const Icon(Icons.feedback),
               title: const Text('Send Feedback'),
               onTap: () {
-                // Handle send feedback tap
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const FeedbackScreen()),
+                );
               },
             ),
           ),
@@ -189,15 +194,6 @@ class _ProfileViewState extends State<ProfileView> {
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: _logout,
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.delete),
-              title: const Text('Delete Account'),
-              onTap: () {
-                // Handle delete account tap
-              },
             ),
           ),
         ],

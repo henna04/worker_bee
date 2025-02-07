@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:worker_bee/adminView/ad_management_screen.dart';
 import 'package:worker_bee/adminView/admin_report_screen.dart';
 import 'package:worker_bee/adminView/categories_management_screen.dart';
+import 'package:worker_bee/adminView/feedback_screen.dart';
 import 'package:worker_bee/adminView/job_management_screen.dart';
 import 'package:worker_bee/adminView/user_management_screen.dart';
 import 'package:worker_bee/adminView/worker_management_screen.dart';
+import 'package:worker_bee/view/feedback_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -44,18 +46,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       stats: '8 Total',
     ),
     DashboardItem(
-      title: 'Jobs',
-      icon: Icons.assignment,
-      screen: const JobManagementScreen(),
-      color: Colors.orange,
-      stats: '52 Pending',
-    ),
-    DashboardItem(
-      title: 'Analytics',
+      title: 'Feedback',
       icon: Icons.analytics,
-      screen: const AnalyticsScreen(),
+      screen: AdminFeedbackScreen(),
       color: Colors.purple,
-      stats: 'View Insights',
+      stats: 'User side',
     ),
     DashboardItem(
       title: 'Reports',
@@ -183,19 +178,6 @@ class DashboardItem {
     required this.color,
     required this.stats,
   });
-}
-
-// Placeholder screens for additional dashboard items
-class AnalyticsScreen extends StatelessWidget {
-  const AnalyticsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Analytics')),
-      body: const Center(child: Text('Analytics Dashboard')),
-    );
-  }
 }
 
 class SettingsScreen extends StatelessWidget {

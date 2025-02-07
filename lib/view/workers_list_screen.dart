@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:worker_bee/view/workerDetails/worker_details.dart';
 
 class WorkersListScreen extends StatefulWidget {
   final String category;
@@ -39,24 +40,34 @@ class _WorkersListScreenState extends State<WorkersListScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('${widget.category} Workers')),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : workers.isEmpty
-              ? Center(child: Text("No workers found"))
+              ? const Center(child: Text("No workers found"))
               : ListView.builder(
                   itemCount: workers.length,
                   itemBuilder: (context, index) {
                     final worker = workers[index];
-                    return Card(
-                      child: ListTile(
-                        title: Text(worker['user_name'] ?? "name"),
-                        subtitle: Text(worker['phone_no'] ?? ""),
-                        leading: CircleAvatar(
-                          backgroundImage: worker['image_url'] != null
-                              ? NetworkImage(worker['image_url'])
-                              : NetworkImage("url"),
-                          child: worker['image_url'] == null
-                              ? Icon(Icons.person)
-                              : null,
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  WorkerDetails(workerId: worker['id']),
+                            ));
+                      },
+                      child: Card(
+                        child: ListTile(
+                          title: Text(worker['user_name'] ?? "name"),
+                          subtitle: Text(worker['phone_no'] ?? ""),
+                          leading: CircleAvatar(
+                            backgroundImage: worker['image_url'] != null
+                                ? NetworkImage(worker['image_url'])
+                                : const NetworkImage("url"),
+                            child: worker['image_url'] == null
+                                ? const Icon(Icons.person)
+                                : null,
+                          ),
                         ),
                       ),
                     );

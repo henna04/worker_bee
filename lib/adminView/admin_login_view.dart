@@ -27,7 +27,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     super.dispose();
   }
 
-  // Admin login method
   Future<void> _loginAdmin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -41,13 +40,23 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           password: _passwordController.text.trim(),
         );
 
-        // Check if user is an admin (you might want to implement a custom role check)
+        // Check admin status
         if (response.user != null) {
-          // Navigate to admin report screen
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => DashboardScreen()));
-        } else {
-          _showErrorSnackBar('Invalid admin credentials');
+          final adminCheck = await _supabase
+              .from('users')
+              .select('is_admin')
+              .eq('id', response.user!.id)
+              .single();
+
+          if (adminCheck['is_admin'] == true) {
+            // Navigate to admin dashboard
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => DashboardScreen()));
+          } else {
+            // Sign out non-admin users
+            await _supabase.auth.signOut();
+            _showErrorSnackBar('Access denied. Admin privileges required.');
+          }
         }
       } on AuthException catch (e) {
         _showErrorSnackBar(e.message);

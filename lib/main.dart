@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:worker_bee/adminView/admin_login_view.dart';
-import 'package:worker_bee/adminView/dashboard_screen.dart';
 import 'package:worker_bee/view/login/login_view.dart';
 
 void main() async {
@@ -26,7 +25,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: AdminLoginScreen(),
+      home: LoginView(),
     );
   }
 }

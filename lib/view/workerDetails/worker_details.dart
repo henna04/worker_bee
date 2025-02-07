@@ -227,17 +227,98 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                         ),
                       ),
                       SingleChildScrollView(
-                        child: Container(
-                          color: Colors.amber,
-                          height: 800, // Example height for testing
-                          child: const Center(
-                            child: Text(
-                              "Posts Content",
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
+                        child: FutureBuilder<List<dynamic>>(
+                          future: Supabase.instance.client
+                              .from('posts')
+                              .select()
+                              .eq('user_id', widget.workerId)
+                              .order('created_at', ascending: false),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text(
+                                    'Error loading posts: ${snapshot.error}'),
+                              );
+                            }
+
+                            final posts = snapshot.data ?? [];
+
+                            if (posts.isEmpty) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Text('No posts yet'),
+                                ),
+                              );
+                            }
+
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 2,
+                                mainAxisSpacing: 2,
+                              ),
+                              itemCount: posts.length,
+                              itemBuilder: (context, index) {
+                                final post = posts[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    // Optional: Add a full-screen view or details modal for the post
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => Dialog(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Image.network(
+                                              post['image_url'],
+                                              fit: BoxFit.cover,
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child:
+                                                  Text(post['caption'] ?? ''),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: post['image_url'] != null
+                                      ? Image.network(
+                                          post['image_url'],
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            );
+                                          },
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return const Icon(Icons.error);
+                                          },
+                                        )
+                                      : Container(color: Colors.grey[200]),
+                                );
+                              },
+                            );
+                          },
                         ),
-                      ),
+                      )
                     ],
                   ),
                 ),
@@ -392,6 +473,16 @@ class _WorkerDetailsState extends State<WorkerDetails> {
         ),
       ),
     );
+  }
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return '';
+    try {
+      final dateTime = DateTime.parse(dateString);
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    } catch (e) {
+      return '';
+    }
   }
 }
 
