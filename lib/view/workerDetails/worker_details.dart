@@ -21,21 +21,21 @@ class _WorkerDetailsState extends State<WorkerDetails> {
   Future<void> _bookWorker(Map<String, dynamic> worker) async {
     if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a date')),
+        const SnackBar(content: Text('Please select a date')),
       );
       return;
     }
 
     if (_selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a time')),
+        const SnackBar(content: Text('Please select a time')),
       );
       return;
     }
 
     if (_addressController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter an address')),
+        const SnackBar(content: Text('Please enter an address')),
       );
       return;
     }
@@ -59,7 +59,7 @@ class _WorkerDetailsState extends State<WorkerDetails> {
 
       // Show success toast
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Booking Successful! Worker will confirm soon.'),
           backgroundColor: Colors.green,
         ),
@@ -300,8 +300,9 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                                           fit: BoxFit.cover,
                                           loadingBuilder: (context, child,
                                               loadingProgress) {
-                                            if (loadingProgress == null)
+                                            if (loadingProgress == null) {
                                               return child;
+                                            }
                                             return const Center(
                                               child:
                                                   CircularProgressIndicator(),
@@ -338,7 +339,7 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "₹${worker['price']}/h",
+                          "₹${worker['price']}",
                           style: theme.textTheme.titleLarge!.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
@@ -475,15 +476,6 @@ class _WorkerDetailsState extends State<WorkerDetails> {
     );
   }
 
-  String _formatDate(String? dateString) {
-    if (dateString == null) return '';
-    try {
-      final dateTime = DateTime.parse(dateString);
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    } catch (e) {
-      return '';
-    }
-  }
 }
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {

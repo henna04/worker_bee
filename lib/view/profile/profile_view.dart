@@ -85,7 +85,7 @@ class _ProfileViewState extends State<ProfileView> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BookedWorkersScreen(),
+                      builder: (context) => const BookedWorkersScreen(),
                     ));
               },
             ),
@@ -108,7 +108,7 @@ class _ProfileViewState extends State<ProfileView> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => WorkerApplicationScreen(),
+                      builder: (context) => const WorkerApplicationScreen(),
                     ));
               },
             ),
@@ -135,15 +135,6 @@ class _ProfileViewState extends State<ProfileView> {
                 });
               },
               secondary: const Icon(Icons.work),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.notifications),
-              title: const Text('Notification'),
-              onTap: () {
-                // Handle notification tap
-              },
             ),
           ),
           const SizedBox(height: 20),
@@ -206,7 +197,7 @@ class _ProfileViewState extends State<ProfileView> {
           (value) => Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (context) => LoginView(),
+              builder: (context) => const LoginView(),
             ),
             (route) => false,
           ),

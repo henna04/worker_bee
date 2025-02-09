@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,7 @@ class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
 
   @override
-  _UserProfileScreenState createState() => _UserProfileScreenState();
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
@@ -19,7 +18,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   List<Map<String, dynamic>> _userPosts = [];
   bool _isLoading = true;
   File? _imageFile;
-  final TextEditingController _postController = TextEditingController();
 
   @override
   void initState() {
@@ -90,7 +88,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
         await _supabase.storage.from('user_images').upload(
             filePath, _imageFile!,
-            fileOptions: FileOptions(upsert: true));
+            fileOptions: const FileOptions(upsert: true));
 
         imageUrl = _supabase.storage.from('user_images').getPublicUrl(filePath);
       }
@@ -124,14 +122,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('User Profile'),
-          bottom: TabBar(
+          bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.person), text: 'Profile'),
               Tab(icon: Icon(Icons.post_add), text: 'My Posts'),
@@ -194,13 +192,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 // Posts List
                 Expanded(
                   child: _isLoading
-                      ? Center(child: CircularProgressIndicator())
+                      ? const Center(child: CircularProgressIndicator())
                       : _userPosts.isEmpty
-                          ? Center(child: Text('No posts yet'))
+                          ? const Center(child: Text('No posts yet'))
                           : GridView.builder(
                               padding: const EdgeInsets.all(8),
                               gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
                                 crossAxisSpacing: 8,
                                 mainAxisSpacing: 8,
@@ -217,10 +215,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                       CachedNetworkImage(
                                         imageUrl: post['image_url'],
                                         fit: BoxFit.cover,
-                                        placeholder: (context, url) => Center(
+                                        placeholder: (context, url) => const Center(
                                             child: CircularProgressIndicator()),
                                         errorWidget: (context, url, error) =>
-                                            Icon(Icons.error),
+                                            const Icon(Icons.error),
                                       ),
                                       Positioned(
                                         top: 5,

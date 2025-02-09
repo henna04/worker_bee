@@ -19,7 +19,6 @@ class CustomNavigationView extends StatefulWidget {
 class _CustomNavigationViewState extends State<CustomNavigationView> {
   var currentIndex = 0;
   bool _isWorkerVerified = false;
-  bool _isLoading = true;
 
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -41,12 +40,10 @@ class _CustomNavigationViewState extends State<CustomNavigationView> {
 
         setState(() {
           _isWorkerVerified = response['is_verified'] ?? false;
-          _isLoading = false;
         });
       }
     } catch (e) {
       log('Error checking worker verification: $e');
-      setState(() => _isLoading = false);
     }
   }
 
@@ -58,11 +55,11 @@ class _CustomNavigationViewState extends State<CustomNavigationView> {
       body: IndexedStack(
         index: currentIndex,
         children: [
-          HomeView(),
-          SearchView(),
-          if (_isWorkerVerified) PostImageView(),
-          ChatView(),
-          ProfileView(),
+          const HomeView(),
+          const SearchView(),
+          if (_isWorkerVerified) const PostImageView(),
+          const ChatView(),
+          const ProfileView(),
         ],
       ),
       bottomNavigationBar: Container(

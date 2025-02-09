@@ -51,7 +51,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           if (adminCheck['is_admin'] == true) {
             // Navigate to admin dashboard
             Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => DashboardScreen()));
+                MaterialPageRoute(builder: (context) => const DashboardScreen()));
           } else {
             // Sign out non-admin users
             await _supabase.auth.signOut();

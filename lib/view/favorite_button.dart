@@ -1,12 +1,10 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FavoriteButton extends StatefulWidget {
-  final String workerId;
-
-  const FavoriteButton({super.key, required this.workerId});
+  final String userId; // This is the ID of the user being favorited
+  const FavoriteButton({super.key, required this.userId});
 
   @override
   State<FavoriteButton> createState() => _FavoriteButtonState();
@@ -28,28 +26,24 @@ class _FavoriteButtonState extends State<FavoriteButton> {
       final response = await _supabase
           .from('favorites')
           .select()
-          .eq('worker_id', widget.workerId)
           .eq('user_id', _supabase.auth.currentUser!.id)
-          .single();
+          .eq('worker_id',
+              widget.userId) // Using worker_id as it exists in your schema
+          .maybeSingle();
 
       if (mounted) {
         setState(() {
-          _isFavorite = true;
+          _isFavorite = response != null;
           _loading = false;
         });
       }
     } catch (e) {
-      if (e is PostgrestException && e.code == 'PGRST116') {
-        // No rows found means not a favorite
-        if (mounted) {
-          setState(() {
-            _isFavorite = false;
-            _loading = false;
-          });
-        }
-      } else {
-        // Handle other potential errors
-        print('Error checking favorite: $e');
+      log('Error in _checkIfFavorite: ${e.toString()}');
+      if (mounted) {
+        setState(() {
+          _isFavorite = false;
+          _loading = false;
+        });
       }
     }
   }
@@ -57,26 +51,38 @@ class _FavoriteButtonState extends State<FavoriteButton> {
   Future<void> _toggleFavorite() async {
     if (_loading) return;
     setState(() => _loading = true);
+
     try {
       if (_isFavorite) {
         await _supabase
             .from('favorites')
             .delete()
-            .eq('worker_id', widget.workerId)
-            .eq('user_id', _supabase.auth.currentUser!.id);
+            .eq('user_id', _supabase.auth.currentUser!.id)
+            .eq('worker_id',
+                widget.userId); // Using worker_id to match your schema
       } else {
         await _supabase.from('favorites').insert({
-          'worker_id': widget.workerId,
           'user_id': _supabase.auth.currentUser!.id,
+          'worker_id': widget.userId, // Using worker_id to match your schema
         });
       }
-      setState(() => _isFavorite = !_isFavorite);
+
+      if (mounted) {
+        setState(() {
+          _isFavorite = !_isFavorite;
+        });
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      log('Error in _toggleFavorite: ${e.toString()}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

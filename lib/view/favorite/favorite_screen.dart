@@ -75,7 +75,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         title: Text(worker['user_name'] ?? 'Unknown'),
                         subtitle: Text(worker['profession'] ?? 'No profession'),
                         trailing:
-                            FavoriteButton(workerId: worker['id'].toString()),
+                            FavoriteButton(userId: worker['id'].toString()),
                         onTap: () {
                           Navigator.push(
                             context,

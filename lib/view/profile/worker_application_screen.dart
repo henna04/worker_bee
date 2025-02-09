@@ -17,19 +17,35 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
   final TextEditingController _professionController = TextEditingController();
   final TextEditingController _experienceController = TextEditingController();
   final TextEditingController _skillsController = TextEditingController();
+  final TextEditingController _hourlyRateController = TextEditingController();
+  final TextEditingController _dailyRateController = TextEditingController();
 
   bool _isSubmitting = false;
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _professionOptions = [];
 
-  // List of predefined professions
-  final List<String> _professionOptions = [
-    'Carpenter',
-    'Electrician',
-    'Plumber',
-    'Painter',
-    'Mechanic',
-    'Gardener',
-    'Construction Worker'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfessions();
+  }
+
+  Future<void> _fetchProfessions() async {
+    try {
+      final response =
+          await _supabase.from('categories').select('id, title').order('title');
+
+      setState(() {
+        _professionOptions = List<Map<String, dynamic>>.from(response);
+        _isLoading = false;
+      });
+    } catch (e) {
+      _showErrorSnackBar('Failed to load professions: ${e.toString()}');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   Future<void> _submitApplication() async {
     if (_formKey.currentState!.validate()) {
@@ -39,12 +55,19 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
 
       try {
         // Get current user ID
+        final userId = _supabase.auth.currentUser?.id;
+        if (userId == null) {
+          throw Exception('User not authenticated');
+        }
 
         // Insert worker application
         await _supabase.from('worker_application').insert({
+          'user_id': userId,
           'profession': _professionController.text.trim(),
           'experience': _experienceController.text.trim(),
           'skills': _skillsController.text.trim(),
+          'hourly_rate': double.parse(_hourlyRateController.text.trim()),
+          'daily_rate': double.parse(_dailyRateController.text.trim()),
           'status': 'pending'
         });
 
@@ -95,85 +118,143 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
       appBar: AppBar(
         title: Text('Worker Application'),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // Profession Dropdown
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Profession',
-                  border: OutlineInputBorder(),
-                ),
-                items: _professionOptions
-                    .map((profession) => DropdownMenuItem(
-                          value: profession,
-                          child: Text(profession),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  _professionController.text = value!;
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a profession';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    // Profession Dropdown - Fixed type casting
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Profession',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _professionOptions
+                          .map((Map<String, dynamic> profession) {
+                        return DropdownMenuItem<String>(
+                          value: profession['title'].toString(),
+                          child: Text(profession['title'].toString()),
+                        );
+                      }).toList(),
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          _professionController.text = value;
+                        }
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select a profession';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
 
-              // Experience Text Field
-              TextFormField(
-                controller: _experienceController,
-                decoration: InputDecoration(
-                  labelText: 'Work Experience',
-                  hintText: 'Describe your work experience',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please describe your experience';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
+                    // Experience Text Field
+                    TextFormField(
+                      controller: _experienceController,
+                      decoration: InputDecoration(
+                        labelText: 'Work Experience',
+                        hintText: 'Describe your work experience',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please describe your experience';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
 
-              // Skills Text Field
-              TextFormField(
-                controller: _skillsController,
-                decoration: InputDecoration(
-                  labelText: 'Skills',
-                  hintText: 'List your relevant skills',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please list your skills';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 24),
+                    // Skills Text Field
+                    TextFormField(
+                      controller: _skillsController,
+                      decoration: InputDecoration(
+                        labelText: 'Skills',
+                        hintText: 'List your relevant skills',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please list your skills';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
 
-              // Submit Button
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submitApplication,
-                child: Text(
-                    _isSubmitting ? 'Submitting...' : 'Submit Application'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
+                    // Hourly Rate Field
+                    TextFormField(
+                      controller: _hourlyRateController,
+                      decoration: InputDecoration(
+                        labelText: 'Hourly Rate (\$)',
+                        hintText: 'Enter your hourly rate',
+                        border: OutlineInputBorder(),
+                        prefixText: '\$ ',
+                      ),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your hourly rate';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        if (double.parse(value) <= 0) {
+                          return 'Rate must be greater than 0';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
+
+                    // Daily Rate Field
+                    TextFormField(
+                      controller: _dailyRateController,
+                      decoration: InputDecoration(
+                        labelText: 'Daily Rate (\$)',
+                        hintText: 'Enter your daily rate',
+                        border: OutlineInputBorder(),
+                        prefixText: '\$ ',
+                      ),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your daily rate';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        if (double.parse(value) <= 0) {
+                          return 'Rate must be greater than 0';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 24),
+
+                    // Submit Button
+                    ElevatedButton(
+                      onPressed: _isSubmitting ? null : _submitApplication,
+                      child: Text(_isSubmitting
+                          ? 'Submitting...'
+                          : 'Submit Application'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 50),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -182,6 +263,8 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
     _professionController.dispose();
     _experienceController.dispose();
     _skillsController.dispose();
+    _hourlyRateController.dispose();
+    _dailyRateController.dispose();
     super.dispose();
   }
 }

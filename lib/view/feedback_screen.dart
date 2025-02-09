@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -36,6 +38,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
+      log(e.toString());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error submitting feedback: $e')),

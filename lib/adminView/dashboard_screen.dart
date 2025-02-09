@@ -3,10 +3,8 @@ import 'package:worker_bee/adminView/ad_management_screen.dart';
 import 'package:worker_bee/adminView/admin_report_screen.dart';
 import 'package:worker_bee/adminView/categories_management_screen.dart';
 import 'package:worker_bee/adminView/feedback_screen.dart';
-import 'package:worker_bee/adminView/job_management_screen.dart';
 import 'package:worker_bee/adminView/user_management_screen.dart';
 import 'package:worker_bee/adminView/worker_management_screen.dart';
-import 'package:worker_bee/view/feedback_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -48,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     DashboardItem(
       title: 'Feedback',
       icon: Icons.analytics,
-      screen: AdminFeedbackScreen(),
+      screen: const AdminFeedbackScreen(),
       color: Colors.purple,
       stats: 'User side',
     ),

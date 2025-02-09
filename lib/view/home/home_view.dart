@@ -331,7 +331,7 @@ class _HomeViewState extends State<HomeView> {
                                         ),
                                       ],
                                     ),
-                                    FavoriteButton(workerId: worker['id'])
+                                    FavoriteButton(userId: worker['id'])
                                   ],
                                 ),
                                 const Gap(10),

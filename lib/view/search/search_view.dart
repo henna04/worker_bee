@@ -144,7 +144,7 @@ class _SearchViewState extends State<SearchView> {
                                           ),
                                         ],
                                       ),
-                                      FavoriteButton(workerId: worker['id']),
+                                      FavoriteButton(userId: worker['id']),
                                     ],
                                   ),
                                   const Gap(10),

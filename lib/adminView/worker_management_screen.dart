@@ -44,32 +44,30 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
   Future<void> _updateApplicationStatus(String id, String status) async {
     try {
       // Update application status
-      final applicationResponse = await _supabase
+      await _supabase
           .from('worker_application')
-          .update({'status': status})
-          .eq('id', id)
-          .select();
-      print('Application update response: $applicationResponse');
+          .update({'status': status}).eq('id', id);
 
-      // Get application details
+      // Get application details including rates and profession
       final application = await _supabase
           .from('worker_application')
-          .select('user_id, profession')
+          .select(
+              'user_id, profession, hourly_rate, daily_rate, experience') // Added experience and price
           .eq('id', id)
           .single();
-      print('Application details: $application');
 
-      // Update user verification status and profession
-      final userResponse = await _supabase
-          .from('users')
-          .update({
-            'is_verified': status == 'approved',
-            'profession':
-                status == 'approved' ? application['profession'] : null
-          })
-          .eq('id', application['user_id'])
-          .select();
-      print('User update response: $userResponse');
+      if (status == 'approved') {
+        // Only update user data if application is approved
+        await _supabase.from('users').update({
+          'is_verified': true,
+          'is_worker': true,
+          'price': application['daily_rate'],
+          'experience': application['experience'],
+          'profession': application['profession'],
+          'hourly_rate': application['hourly_rate'],
+          'daily_rate': application['daily_rate']
+        }).eq('id', application['user_id']);
+      }
 
       await _fetchApplications();
 
@@ -101,7 +99,7 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Worker Applications'),
+        title: const Text('Worker Applications'),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -129,7 +127,6 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // User Details Section
                                 Text(
                                   'Applicant Details',
                                   style:
@@ -144,12 +141,13 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                                     'Phone', app['users']['phone_no'] ?? 'N/A'),
                                 _buildDetailRow(
                                     'Place', app['users']['place'] ?? 'N/A'),
-
-                                // Existing Application Details
                                 SizedBox(height: 16),
                                 Text('Experience: ${app['experience']}'),
                                 SizedBox(height: 8),
                                 Text('Skills: ${app['skills']}'),
+                                SizedBox(height: 8),
+                                Text('Hourly Rate: \$${app['hourly_rate']}'),
+                                Text('Daily Rate: \$${app['daily_rate']}'),
                                 SizedBox(height: 16),
                                 Row(
                                   mainAxisAlignment:
