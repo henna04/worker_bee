@@ -85,7 +85,7 @@ class _HomeViewState extends State<HomeView> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => FavoritesScreen(),
+                      builder: (context) => const FavoritesScreen(),
                     ));
               },
               icon: const Icon(

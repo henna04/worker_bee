@@ -134,7 +134,7 @@ class _PostImageViewState extends State<PostImageView> {
                   child: CustomButton(
                     btnText: "Take Photo",
                     onPressed: () => _pickImage(ImageSource.camera),
-                    icon: Icon(Icons.camera_alt),
+                    icon: const Icon(Icons.camera_alt),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -142,7 +142,7 @@ class _PostImageViewState extends State<PostImageView> {
                   child: CustomButton(
                     btnText: "Choose from Gallery",
                     onPressed: () => _pickImage(ImageSource.gallery),
-                    icon: Icon(Icons.photo_library),
+                    icon: const Icon(Icons.photo_library),
                   ),
                 ),
               ],

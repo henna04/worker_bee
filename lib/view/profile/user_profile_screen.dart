@@ -224,7 +224,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                         top: 5,
                                         right: 5,
                                         child: IconButton(
-                                          icon: Icon(Icons.delete,
+                                          icon: const Icon(Icons.delete,
                                               color: Colors.white),
                                           onPressed: () =>
                                               _deletePost(post['id']),
@@ -254,7 +254,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Update Profile'),
+        title: const Text('Update Profile'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -278,37 +278,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ? NetworkImage(_userData['image_url'])
                           : null),
                   child: _imageFile == null && _userData['image_url'] == null
-                      ? Icon(Icons.camera_alt)
+                      ? const Icon(Icons.camera_alt)
                       : null,
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Text Fields for Profile Update
               TextField(
                 controller: nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Name',
                   prefixIcon: Icon(Icons.person),
                 ),
               ),
               TextField(
                 controller: phoneController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Phone',
                   prefixIcon: Icon(Icons.phone),
                 ),
               ),
               TextField(
                 controller: professionController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Profession',
                   prefixIcon: Icon(Icons.work),
                 ),
               ),
               TextField(
                 controller: placeController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Place',
                   prefixIcon: Icon(Icons.location_on),
                 ),
@@ -319,7 +319,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -335,7 +335,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               // Close dialog
               Navigator.of(context).pop();
             },
-            child: Text('Update'),
+            child: const Text('Update'),
           ),
         ],
       ),

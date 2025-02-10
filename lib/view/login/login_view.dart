@@ -49,7 +49,7 @@ class _LoginViewState extends State<LoginView> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => CustomNavigationView(),
+            builder: (context) => const CustomNavigationView(),
           ),
           (route) => false,
         );

@@ -37,7 +37,7 @@ class _ProfileViewState extends State<ProfileView> {
             .eq('id', userId)
             .single();
 
-        log("ddd" + response.toString());
+        log("ddd$response");
 
         setState(() => isVerified = response['is_verified'] ?? false);
       } catch (e) {
@@ -72,7 +72,7 @@ class _ProfileViewState extends State<ProfileView> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => UserProfileScreen(),
+                      builder: (context) => const UserProfileScreen(),
                     ));
               },
             ),

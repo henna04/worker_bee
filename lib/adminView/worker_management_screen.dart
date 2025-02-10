@@ -72,7 +72,7 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
       await _fetchApplications();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Application ${status} successfully')),
+        SnackBar(content: Text('Application $status successfully')),
       );
     } catch (e) {
       print('Error updating status: $e');
@@ -102,15 +102,15 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
         title: const Text('Worker Applications'),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _applications.isEmpty
-              ? Center(child: Text('No applications found'))
+              ? const Center(child: Text('No applications found'))
               : ListView.builder(
                   itemCount: _applications.length,
                   itemBuilder: (context, index) {
                     final app = _applications[index];
                     return Card(
-                      margin: EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(8),
                       child: ExpansionTile(
                         title: Text(app['profession'] ?? 'Unknown Profession'),
                         subtitle: Text(
@@ -123,7 +123,7 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                             .split(' ')[0]),
                         children: [
                           Padding(
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -132,7 +132,7 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                                   style:
                                       Theme.of(context).textTheme.titleMedium,
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 _buildDetailRow(
                                     'Name', app['users']['user_name'] ?? 'N/A'),
                                 _buildDetailRow(
@@ -141,14 +141,14 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                                     'Phone', app['users']['phone_no'] ?? 'N/A'),
                                 _buildDetailRow(
                                     'Place', app['users']['place'] ?? 'N/A'),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 Text('Experience: ${app['experience']}'),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Text('Skills: ${app['skills']}'),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Text('Hourly Rate: \$${app['hourly_rate']}'),
                                 Text('Daily Rate: \$${app['daily_rate']}'),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
@@ -161,7 +161,7 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.green,
                                       ),
-                                      child: Text('Approve'),
+                                      child: const Text('Approve'),
                                     ),
                                     ElevatedButton(
                                       onPressed: app['status'] != 'rejected'
@@ -171,7 +171,7 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
                                       ),
-                                      child: Text('Reject'),
+                                      child: const Text('Reject'),
                                     ),
                                   ],
                                 ),
@@ -193,7 +193,7 @@ class _WorkerApplicationsScreenState extends State<WorkerApplicationsScreen> {
         children: [
           Text(
             '$label: ',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Expanded(child: Text(value)),
         ],

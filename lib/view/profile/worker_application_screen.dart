@@ -87,16 +87,16 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Application Submitted'),
+        title: const Text('Application Submitted'),
         content:
-            Text('Your worker application has been submitted successfully.'),
+            const Text('Your worker application has been submitted successfully.'),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop(); // Close application screen
             },
-            child: Text('OK'),
+            child: const Text('OK'),
           )
         ],
       ),
@@ -116,19 +116,19 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Worker Application'),
+        title: const Text('Worker Application'),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
                 child: ListView(
                   children: [
                     // Profession Dropdown - Fixed type casting
                     DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Profession',
                         border: OutlineInputBorder(),
                       ),
@@ -151,12 +151,12 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
                     // Experience Text Field
                     TextFormField(
                       controller: _experienceController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Work Experience',
                         hintText: 'Describe your work experience',
                         border: OutlineInputBorder(),
@@ -169,12 +169,12 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
                     // Skills Text Field
                     TextFormField(
                       controller: _skillsController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Skills',
                         hintText: 'List your relevant skills',
                         border: OutlineInputBorder(),
@@ -187,19 +187,19 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
                     // Hourly Rate Field
                     TextFormField(
                       controller: _hourlyRateController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Hourly Rate (\$)',
                         hintText: 'Enter your hourly rate',
                         border: OutlineInputBorder(),
                         prefixText: '\$ ',
                       ),
                       keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
+                          const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your hourly rate';
@@ -213,19 +213,19 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
                     // Daily Rate Field
                     TextFormField(
                       controller: _dailyRateController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Daily Rate (\$)',
                         hintText: 'Enter your daily rate',
                         border: OutlineInputBorder(),
                         prefixText: '\$ ',
                       ),
                       keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
+                          const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your daily rate';
@@ -239,17 +239,17 @@ class _WorkerApplicationScreenState extends State<WorkerApplicationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // Submit Button
                     ElevatedButton(
                       onPressed: _isSubmitting ? null : _submitApplication,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
                       child: Text(_isSubmitting
                           ? 'Submitting...'
                           : 'Submit Application'),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(double.infinity, 50),
-                      ),
                     ),
                   ],
                 ),

@@ -46,7 +46,7 @@ class _RegisterViewState extends State<RegisterView> {
   Future<void> _register() async {
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Passwords do not match')),
+        const SnackBar(content: Text('Passwords do not match')),
       );
       return;
     }
@@ -98,7 +98,7 @@ class _RegisterViewState extends State<RegisterView> {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => CustomNavigationView(),
+              builder: (context) => const CustomNavigationView(),
             ));
       }
     } catch (e) {
