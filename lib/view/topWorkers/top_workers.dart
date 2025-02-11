@@ -27,9 +27,10 @@ class _TopWorkersViewState extends State<TopWorkersView> {
           .from('users')
           .select()
           .eq('is_verified', true)
+          .eq('is_available', true)
           .neq('id', Supabase.instance.client.auth.currentUser!.id)
-          .order('ratings',
-              ascending: false); // Sort by ratings in descending order
+          .order('ratings', ascending: false);
+
       log('Workers fetched: $response');
       setState(() {
         workers = response;

@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:worker_bee/res/components/common/custom_button.dart';
 import 'package:worker_bee/res/components/common/custom_textform_field.dart';
+import 'package:worker_bee/view/chatDetails/chat_details_view.dart';
 
 class WorkerDetails extends StatefulWidget {
   const WorkerDetails({super.key, required this.workerId});
@@ -17,6 +18,19 @@ class _WorkerDetailsState extends State<WorkerDetails> {
   TimeOfDay? _selectedTime;
   final TextEditingController _addressController = TextEditingController();
   final _supabase = Supabase.instance.client;
+
+  void _navigateToChat(Map<String, dynamic> worker) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatDetailsView(
+          workerId: widget.workerId,
+          workerName: worker['user_name'] ?? 'Worker',
+          workerImage: worker['image_url'],
+        ),
+      ),
+    );
+  }
 
   Future<void> _bookWorker(Map<String, dynamic> worker) async {
     if (_selectedDate == null) {
@@ -41,10 +55,8 @@ class _WorkerDetailsState extends State<WorkerDetails> {
     }
 
     try {
-      // Get current user ID
       final userId = _supabase.auth.currentUser!.id;
 
-      // Insert booking into Supabase
       await _supabase.from('bookings').insert({
         'user_id': userId,
         'worker_id': widget.workerId,
@@ -57,23 +69,24 @@ class _WorkerDetailsState extends State<WorkerDetails> {
         'price': worker['price']
       });
 
-      // Show success toast
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Booking Successful! Worker will confirm soon.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // Close bottom sheet
-      Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Booking Successful! Worker will confirm soon.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Booking Failed: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Booking Failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -132,6 +145,19 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                                   color: theme.colorScheme.onSurface,
                                 ),
                               ),
+                              const Gap(10),
+                              // Add Chat Button
+                              ElevatedButton.icon(
+                                onPressed: () => _navigateToChat(worker),
+                                icon: const Icon(Icons.chat),
+                                label: const Text('Chat with Worker'),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
                               const Gap(20),
                             ],
                           ),
@@ -139,7 +165,7 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                       ),
                       SliverPersistentHeader(
                         pinned: true,
-                        delegate: _SliverAppBarDelegate(
+                        delegate: SliverAppBarDelegate(
                           TabBar(
                             tabs: [
                               Tab(
@@ -272,7 +298,6 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                                 final post = posts[index];
                                 return GestureDetector(
                                   onTap: () {
-                                    // Optional: Add a full-screen view or details modal for the post
                                     showDialog(
                                       context: context,
                                       builder: (context) => Dialog(
@@ -475,31 +500,30 @@ class _WorkerDetailsState extends State<WorkerDetails> {
       ),
     );
   }
-
 }
 
-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar tabBar;
+class SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  SliverAppBarDelegate(this._tabBar);
 
-  _SliverAppBarDelegate(this.tabBar);
-
-  @override
-  double get minExtent => tabBar.preferredSize.height;
+  final TabBar _tabBar;
 
   @override
-  double get maxExtent => tabBar.preferredSize.height;
+  double get minExtent => _tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Material(
-      color: Colors.white,
-      child: tabBar,
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: _tabBar,
     );
   }
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+  bool shouldRebuild(SliverAppBarDelegate oldDelegate) {
     return false;
   }
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:worker_bee/adminView/ad_management_screen.dart';
 import 'package:worker_bee/adminView/admin_report_screen.dart';
 import 'package:worker_bee/adminView/categories_management_screen.dart';
 import 'package:worker_bee/adminView/feedback_screen.dart';
+import 'package:worker_bee/adminView/settings_screen.dart';
 import 'package:worker_bee/adminView/user_management_screen.dart';
 import 'package:worker_bee/adminView/worker_management_screen.dart';
 
@@ -14,63 +16,112 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final List<DashboardItem> _dashboardItems = [
-    DashboardItem(
-      title: 'Users',
-      icon: Icons.people,
-      screen: const UserManagementScreen(),
-      color: Colors.blue,
-      stats: '245 Total',
-    ),
-    DashboardItem(
-      title: 'Workers Application',
-      icon: Icons.work,
-      screen: const WorkerApplicationsScreen(),
-      color: Colors.green,
-      stats: '128 Active',
-    ),
-    DashboardItem(
-      title: 'Ads',
-      icon: Icons.ad_units,
-      screen: const AdManagementScreen(),
-      color: Colors.brown,
-      stats: '15 Active',
-    ),
-    DashboardItem(
-      title: 'Categories',
-      icon: Icons.category,
-      screen: const CategoryManagementScreen(),
-      color: Colors.indigo,
-      stats: '8 Total',
-    ),
-    DashboardItem(
-      title: 'Feedback',
-      icon: Icons.analytics,
-      screen: const AdminFeedbackScreen(),
-      color: Colors.purple,
-      stats: 'User side',
-    ),
-    DashboardItem(
-      title: 'Reports',
-      icon: Icons.report,
-      screen: const AdminReportScreen(),
-      color: Colors.red,
-      stats: 'Generate',
-    ),
-    DashboardItem(
-      title: 'Settings',
-      icon: Icons.settings,
-      screen: const SettingsScreen(),
-      color: Colors.teal,
-      stats: 'Manage App',
-    ),
-  ];
+  final supabase = Supabase.instance.client;
+  Map<String, String> dashboardStats = {
+    'Users': '...',
+    'Workers Application': '...',
+    'Ads': '...',
+    'Categories': '...',
+    'Feedback': 'User side',
+    'Reports': 'Generate',
+    'Settings': 'Manage App',
+  };
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchDashboardStats();
+  }
+
+  Future<void> _fetchDashboardStats() async {
+    try {
+      // Fetch total users count
+      final usersCount = await supabase.from('users').count();
+
+      // Fetch active workers count
+      final workersCount = await supabase.from('worker_application').count();
+
+      final adsCount = await supabase.from('ads').count();
+      final categoriesCount = await supabase.from('categories').count();
+
+      if (mounted) {
+        setState(() {
+          dashboardStats['Users'] = '$usersCount Total';
+          dashboardStats['Workers Application'] = '$workersCount Active';
+          dashboardStats['Ads'] = '$adsCount Active';
+          dashboardStats['Categories'] = '$categoriesCount Total';
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching dashboard stats: $e');
+      // Handle error appropriately
+    }
+  }
+
+  List<DashboardItem> get _dashboardItems => [
+        DashboardItem(
+          title: 'Users',
+          icon: Icons.people,
+          screen: const UserManagementScreen(),
+          color: Colors.blue,
+          stats: dashboardStats['Users']!,
+        ),
+        DashboardItem(
+          title: 'Workers Application',
+          icon: Icons.work,
+          screen: const WorkerApplicationsScreen(),
+          color: Colors.green,
+          stats: dashboardStats['Workers Application']!,
+        ),
+        DashboardItem(
+          title: 'Ads',
+          icon: Icons.ad_units,
+          screen: const AdManagementScreen(),
+          color: Colors.brown,
+          stats: dashboardStats['Ads']!,
+        ),
+        DashboardItem(
+          title: 'Categories',
+          icon: Icons.category,
+          screen: const CategoryManagementScreen(),
+          color: Colors.indigo,
+          stats: dashboardStats['Categories']!,
+        ),
+        DashboardItem(
+          title: 'Feedback',
+          icon: Icons.analytics,
+          screen: const AdminFeedbackScreen(),
+          color: Colors.purple,
+          stats: dashboardStats['Feedback']!,
+        ),
+        DashboardItem(
+          title: 'Reports',
+          icon: Icons.report,
+          screen: const AdminReportScreen(),
+          color: Colors.red,
+          stats: dashboardStats['Reports']!,
+        ),
+        DashboardItem(
+          title: 'Settings',
+          icon: Icons.settings,
+          screen: const SettingsScreen(),
+          color: Colors.teal,
+          stats: dashboardStats['Settings']!,
+        ),
+      ];
+
+  // Rest of the code remains the same...
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('WorkerBee Dashboard'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _fetchDashboardStats,
+          ),
+        ],
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -115,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                item.color.withValues(alpha: .7),
+                item.color.withOpacity(.7),
                 item.color,
               ],
             ),
@@ -134,7 +185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   Icon(
                     Icons.arrow_forward_ios,
-                    color: Colors.white.withValues(alpha: .7),
+                    color: Colors.white.withOpacity(.7),
                   ),
                 ],
               ),
@@ -176,16 +227,4 @@ class DashboardItem {
     required this.color,
     required this.stats,
   });
-}
-
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: const Center(child: Text('Application Settings')),
-    );
-  }
 }

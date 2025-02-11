@@ -1,42 +1,238 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:worker_bee/view/chatDetails/chat_details_view.dart';
 
-class ChatView extends StatelessWidget {
+class ChatView extends StatefulWidget {
   const ChatView({super.key});
 
   @override
+  State<ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends State<ChatView> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  final _supabase = Supabase.instance.client;
+  late final String _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentUserId = _supabase.auth.currentUser!.id;
+  }
+
+  Stream<List<Map<String, dynamic>>> _getConversationsStream() {
+    return _supabase
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .order('created_at')
+        .map((messages) {
+          final Map<String, Map<String, dynamic>> conversations = {};
+
+          // Sort messages by timestamp first (newest to oldest)
+          messages.sort((a, b) => DateTime.parse(b['created_at'])
+              .compareTo(DateTime.parse(a['created_at'])));
+
+          for (final message in messages) {
+            final otherUserId = message['sender_id'] == _currentUserId
+                ? message['receiver_id']
+                : message['sender_id'];
+
+            // Only update if this is a newer message for this conversation
+            if (!conversations.containsKey(otherUserId) ||
+                DateTime.parse(message['created_at']).isAfter(
+                    DateTime.parse(conversations[otherUserId]!['timestamp']))) {
+              conversations[otherUserId] = {
+                'last_message': message['message'],
+                'timestamp': message['created_at'],
+                'other_user_id': otherUserId,
+                'is_sender': message['sender_id'] == _currentUserId,
+              };
+            }
+          }
+
+          // Convert to list and sort by timestamp
+          final sortedConversations = conversations.values.toList()
+            ..sort((a, b) => DateTime.parse(b['timestamp'])
+                .compareTo(DateTime.parse(a['timestamp'])));
+
+          return sortedConversations;
+        });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chats'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 10, // Replace with the actual number of chat items
-        itemBuilder: (context, index) {
-          return Card(
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundImage: NetworkImage(
-                    'https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'), // Replace with the actual image URL
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search chats...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
               ),
-              title: Text('User $index'), // Replace with the actual user name
-              subtitle: Text(
-                  'Last message from user $index'), // Replace with the actual last message
-              trailing: const Text('12:00 PM'), // Replace with the actual time
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatDetailsView(
-                        userName: 'User $index'), // Pass the actual user name
-                  ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: _getConversationsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final conversations = snapshot.data!;
+
+                if (conversations.isEmpty) {
+                  return const Center(child: Text('No conversations yet'));
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: conversations.length,
+                  itemBuilder: (context, index) {
+                    final conversation = conversations[index];
+
+                    return FutureBuilder<Map<String, dynamic>>(
+                      future: _supabase
+                          .from('users')
+                          .select()
+                          .eq('id', conversation['other_user_id'])
+                          .single(),
+                      builder: (context, userSnapshot) {
+                        if (!userSnapshot.hasData) {
+                          return const SizedBox.shrink();
+                        }
+
+                        final user = userSnapshot.data!;
+                        final userName = user['user_name'] ?? 'Unknown User';
+
+                        // Filter based on search query
+                        if (_searchQuery.isNotEmpty &&
+                            !userName
+                                .toLowerCase()
+                                .contains(_searchQuery.toLowerCase()) &&
+                            !conversation['last_message']
+                                .toString()
+                                .toLowerCase()
+                                .contains(_searchQuery.toLowerCase())) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage:
+                                  NetworkImage(user['image_url'] ?? ''),
+                              backgroundColor: Colors.grey[300],
+                            ),
+                            title: Text(userName),
+                            subtitle: Row(
+                              children: [
+                                if (conversation['is_sender'])
+                                  const Padding(
+                                    padding: EdgeInsets.only(right: 4),
+                                    child: Icon(Icons.done, size: 16),
+                                  ),
+                                Expanded(
+                                  child: Text(
+                                    conversation['last_message'] ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            trailing: Text(
+                              _formatTimestamp(conversation['timestamp']),
+                              style: TextStyle(
+                                color: theme.textTheme.bodySmall?.color,
+                                fontSize: 12,
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatDetailsView(
+                                    workerId: conversation['other_user_id'],
+                                    workerName: userName,
+                                    workerImage: user['image_url'],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
                 );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
+  }
+
+  String _formatTimestamp(String timestamp) {
+    final now = DateTime.now();
+    final messageTime = DateTime.parse(timestamp).toLocal();
+
+    if (now.difference(messageTime).inDays == 0) {
+      // Today - show time
+      return '${messageTime.hour.toString().padLeft(2, '0')}:${messageTime.minute.toString().padLeft(2, '0')}';
+    } else if (now.difference(messageTime).inDays == 1) {
+      // Yesterday
+      return 'Yesterday';
+    } else if (now.difference(messageTime).inDays < 7) {
+      // Within last week - show day name
+      final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return weekdays[messageTime.weekday - 1];
+    } else {
+      // Older - show date
+      return '${messageTime.day}/${messageTime.month}';
+    }
   }
 }

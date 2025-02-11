@@ -24,15 +24,27 @@ class _WorkersListScreenState extends State<WorkersListScreen> {
   }
 
   Future<void> fetchWorkers() async {
-    final response = await supabase
-        .from('users') // Your table name
-        .select()
-        .eq('profession', widget.category); // Filter by category
-    log(response.toString());
-    setState(() {
-      workers = response;
-      isLoading = false;
-    });
+    try {
+      final response = await supabase
+          .from('users')
+          .select()
+          .eq('profession', widget.category)
+          .eq('is_verified', true)
+          .eq('is_available', true)
+          .neq('id', supabase.auth.currentUser!.id)
+          .order('ratings', ascending: false);
+
+      log('Workers fetched: $response');
+      setState(() {
+        workers = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      log('Error fetching workers: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override

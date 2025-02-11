@@ -30,16 +30,22 @@ class _SearchViewState extends State<SearchView> {
           .from('users')
           .select()
           .eq('is_verified', true)
+          .eq('is_available', true)
           .neq('id', Supabase.instance.client.auth.currentUser!.id)
           .order('ratings', ascending: false);
+
       log('Workers fetched: $response');
       setState(() {
         workers = response;
         filteredWorkers =
-            workers; // Initialize filteredWorkers with all workers
+            workers; // Initialize filteredWorkers with available workers
       });
     } catch (e) {
       log('Error fetching workers: $e');
+      setState(() {
+        workers = [];
+        filteredWorkers = [];
+      });
     }
   }
 
