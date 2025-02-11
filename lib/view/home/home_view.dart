@@ -65,6 +65,12 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  Future fetchAll() async {
+    await _fetchCategories();
+    await _fetchAds();
+    await _fetchWorkers();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -93,10 +99,10 @@ class _HomeViewState extends State<HomeView> {
               ))
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: RefreshIndicator(
+        onRefresh: fetchAll,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
             CarouselSlider(
               items: ads.map((ad) {

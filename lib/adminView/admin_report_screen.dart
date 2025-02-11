@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Admin Report Screen
 class AdminReportScreen extends StatefulWidget {
   const AdminReportScreen({super.key});
 
@@ -22,15 +21,28 @@ class _AdminReportScreenState extends State<AdminReportScreen> {
 
   Future<void> _fetchReports() async {
     try {
-      final response = await Supabase.instance.client
-          .from('reports')
-          .select(); // Fetch only verified workers
+      final response = await Supabase.instance.client.from('reports').select();
       log('Reports fetched: $response');
       setState(() {
         reports = response;
       });
     } catch (e) {
       log('Error fetching workers: $e');
+    }
+  }
+
+  Future<void> _updateReportStatus(dynamic reportId, String status) async {
+    try {
+      await Supabase.instance.client
+          .from('reports')
+          .update({'status': status}).eq('id', reportId);
+
+      await _fetchReports();
+    } catch (e) {
+      log('Error updating report status: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update report status: $e')),
+      );
     }
   }
 
@@ -94,7 +106,7 @@ class _AdminReportScreenState extends State<AdminReportScreen> {
                         children: [
                           ElevatedButton(
                             onPressed: () {
-                              // Update status to In Progress
+                              _updateReportStatus(report['id'], 'In Progress');
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
@@ -103,7 +115,7 @@ class _AdminReportScreenState extends State<AdminReportScreen> {
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              // Update status to Resolved
+                              _updateReportStatus(report['id'], 'Resolved');
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,

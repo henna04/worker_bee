@@ -1,5 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:worker_bee/view/favorite_button.dart';
 
 class TopWorkersView extends StatefulWidget {
   const TopWorkersView({super.key});
@@ -9,6 +13,32 @@ class TopWorkersView extends StatefulWidget {
 }
 
 class _TopWorkersViewState extends State<TopWorkersView> {
+  List<Map<String, dynamic>> workers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWorkers();
+  }
+
+  Future<void> _fetchWorkers() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('users')
+          .select()
+          .eq('is_verified', true)
+          .neq('id', Supabase.instance.client.auth.currentUser!.id)
+          .order('ratings',
+              ascending: false); // Sort by ratings in descending order
+      log('Workers fetched: $response');
+      setState(() {
+        workers = response;
+      });
+    } catch (e) {
+      log('Error fetching workers: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -17,95 +47,83 @@ class _TopWorkersViewState extends State<TopWorkersView> {
         title: const Text("Top Workers"),
       ),
       body: ListView.builder(
-        itemCount: 2,
-        shrinkWrap: true,
-        padding: const EdgeInsets.all(16),
-        itemBuilder: (context, index) => Card(
-          clipBehavior: Clip.hardEdge,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            child: Flex(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              direction: Axis.horizontal,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.network(
-                    "https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const Gap(10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Flex(
-                        direction: Axis.horizontal,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          itemCount: workers.length,
+          shrinkWrap: true,
+          padding: const EdgeInsets.all(16),
+          itemBuilder: (context, index) {
+            final data = workers[index];
+            return Card(
+              clipBehavior: Clip.hardEdge,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: Flex(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  direction: Axis.horizontal,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Image.network(
+                        data['image_url'] ?? "",
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const Gap(10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Flex(
-                            direction: Axis.vertical,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            direction: Axis.horizontal,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Worker Name",
-                                style: theme.textTheme.bodyLarge!.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              Flex(
+                                direction: Axis.vertical,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    data['user_name'] ?? "",
+                                    style: theme.textTheme.bodyLarge!.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    data['profession'],
+                                    style: theme.textTheme.bodyLarge!.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                "Plumber",
-                                style: theme.textTheme.bodyLarge!.copyWith(
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                              ),
+                              FavoriteButton(userId: data['id'])
                             ],
                           ),
-                          IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Icons.favorite_outline)),
+                          const Gap(10),
+                          Flex(
+                            direction: Axis.horizontal,
+                            children: [
+                              Text(
+                                data['ratings'] ?? "",
+                                style: theme.textTheme.bodyLarge!.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                              ),
+                            ],
+                          )
                         ],
                       ),
-                      const Gap(10),
-                      Flex(
-                        direction: Axis.horizontal,
-                        children: [
-                          Text(
-                            "4",
-                            style: theme.textTheme.bodyLarge!.copyWith(
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
-                          const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                          ),
-                          const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                          ),
-                          const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                          ),
-                          const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
+                    )
+                  ],
+                ),
+              ),
+            );
+          }),
     );
   }
 }

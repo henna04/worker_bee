@@ -47,20 +47,42 @@ class _BookedWorkersScreenState extends State<BookedWorkersScreen> {
     }
   }
 
-  void _cancelBooking(String bookingId) async {
+  void _approveBooking(String bookingId) async {
     try {
-      await _supabase.from('bookings').delete().eq('id', bookingId);
+      await _supabase
+          .from('bookings')
+          .update({'status': 'confirmed'}).eq('id', bookingId);
       _fetchBookedWorkers(); // Refresh the list
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Booking cancelled successfully'),
+          content: Text('Booking approved successfully'),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error cancelling booking: ${e.toString()}'),
+          content: Text('Error approving booking: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _cancelBooking(String bookingId) async {
+    try {
+      await _supabase.from('bookings').delete().eq('id', bookingId);
+      _fetchBookedWorkers(); // Refresh the list
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Booking removed successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error removing booking: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -163,13 +185,25 @@ class _BookedWorkersScreenState extends State<BookedWorkersScreen> {
                                   ),
                                 ),
                                 if (booking['status'] == 'pending')
-                                  ElevatedButton(
-                                    onPressed: () =>
-                                        _cancelBooking(booking['id']),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                    ),
-                                    child: const Text('Cancel'),
+                                  Row(
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            _approveBooking(booking['id']),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                        ),
+                                        child: const Text('Approve'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            _cancelBooking(booking['id']),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                        ),
+                                        child: const Text('Remove'),
+                                      ),
+                                    ],
                                   ),
                               ],
                             ),

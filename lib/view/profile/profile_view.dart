@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:worker_bee/res/components/common/custom_button.dart';
 import 'package:worker_bee/view/feedback_screen.dart';
 import 'package:worker_bee/view/login/login_view.dart';
 import 'package:worker_bee/view/profile/bookings_ecreen.dart';
@@ -184,7 +185,27 @@ class _ProfileViewState extends State<ProfileView> {
             child: ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
-              onTap: _logout,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text("Logout"),
+                    content: Text("Are you want to logout?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("Cancel"),
+                      ),
+                      CustomButton(
+                        onPressed: _logout,
+                        btnText: "Logout",
+                      )
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],

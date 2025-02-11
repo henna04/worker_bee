@@ -29,11 +29,14 @@ class _SearchViewState extends State<SearchView> {
       final response = await Supabase.instance.client
           .from('users')
           .select()
-          .eq('is_verified', true); // Fetch only verified workers
+          .eq('is_verified', true)
+          .neq('id', Supabase.instance.client.auth.currentUser!.id)
+          .order('ratings', ascending: false);
       log('Workers fetched: $response');
       setState(() {
         workers = response;
-        filteredWorkers = response;
+        filteredWorkers =
+            workers; // Initialize filteredWorkers with all workers
       });
     } catch (e) {
       log('Error fetching workers: $e');
@@ -63,9 +66,10 @@ class _SearchViewState extends State<SearchView> {
       appBar: AppBar(
         title: const Text("Search"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: _fetchWorkers,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
             SearchBar(
               leading: const Icon(Icons.search),
@@ -74,106 +78,103 @@ class _SearchViewState extends State<SearchView> {
               onChanged: _filterWorkers, // Filter workers as the user types
             ),
             const Gap(20),
-            Expanded(
-              child: ListView.builder(
-                itemCount:
-                    filteredWorkers.length, // Use the filtered workers list
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  final worker = filteredWorkers[index]; // Get the worker data
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                WorkerDetails(workerId: worker['id']),
-                          ));
-                    },
-                    child: Card(
-                      clipBehavior: Clip.hardEdge,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Flex(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          direction: Axis.horizontal,
-                          children: [
-                            // Worker Image
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(15),
-                              child: Image.network(
-                                worker['image_url'] ?? '',
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                              ),
+            ListView.builder(
+              itemCount: filteredWorkers.isEmpty
+                  ? workers.length
+                  : filteredWorkers.length, // Use the filtered workers list
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                final worker = filteredWorkers.isEmpty
+                    ? workers[index]
+                    : filteredWorkers[index];
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              WorkerDetails(workerId: worker['id']),
+                        ));
+                  },
+                  child: Card(
+                    clipBehavior: Clip.hardEdge,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Flex(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        direction: Axis.horizontal,
+                        children: [
+                          // Worker Image
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(15),
+                            child: Image.network(
+                              worker['image_url'] ?? '',
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
                             ),
-                            const Gap(10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Flex(
-                                    direction: Axis.horizontal,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Flex(
-                                        direction: Axis.vertical,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            worker['user_name'] ??
-                                                'Worker Name',
-                                            style: theme.textTheme.bodyLarge!
-                                                .copyWith(
-                                              color:
-                                                  theme.colorScheme.onSurface,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                          ),
+                          const Gap(10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Flex(
+                                  direction: Axis.horizontal,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Flex(
+                                      direction: Axis.vertical,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          worker['user_name'] ?? 'Worker Name',
+                                          style: theme.textTheme.bodyLarge!
+                                              .copyWith(
+                                            color: theme.colorScheme.onSurface,
+                                            fontWeight: FontWeight.w600,
                                           ),
-                                          Text(
-                                            worker['profession'] ??
-                                                'Profession',
-                                            style: theme.textTheme.bodyLarge!
-                                                .copyWith(
-                                              color:
-                                                  theme.colorScheme.onSurface,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      FavoriteButton(userId: worker['id']),
-                                    ],
-                                  ),
-                                  const Gap(10),
-                                  // Worker Rating
-                                  Row(
-                                    children: [
-                                      Text(
-                                        worker['ratings'].toString(),
-                                        style:
-                                            theme.textTheme.bodyLarge!.copyWith(
-                                          color: theme.colorScheme.onSurface,
                                         ),
+                                        Text(
+                                          worker['profession'] ?? 'Profession',
+                                          style: theme.textTheme.bodyLarge!
+                                              .copyWith(
+                                            color: theme.colorScheme.onSurface,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    FavoriteButton(userId: worker['id']),
+                                  ],
+                                ),
+                                const Gap(10),
+                                // Worker Rating
+                                Row(
+                                  children: [
+                                    Text(
+                                      worker['ratings'].toString(),
+                                      style:
+                                          theme.textTheme.bodyLarge!.copyWith(
+                                        color: theme.colorScheme.onSurface,
                                       ),
-                                      const Icon(
-                                        Icons.star,
-                                        color: Colors.amber,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                    ),
+                                    const Icon(
+                                      Icons.star,
+                                      color: Colors.amber,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ],
         ),
