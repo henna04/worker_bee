@@ -166,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                item.color.withOpacity(.7),
+                item.color.withValues(alpha: .7),
                 item.color,
               ],
             ),
@@ -185,7 +185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   Icon(
                     Icons.arrow_forward_ios,
-                    color: Colors.white.withOpacity(.7),
+                    color: Colors.white.withValues(alpha: .7),
                   ),
                 ],
               ),

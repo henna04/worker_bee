@@ -131,7 +131,7 @@ class _ProfileViewState extends State<ProfileView> {
 
         // Delete the user's authentication data
         // This requires the user to have a current session
-        final response = await supabase.rpc('delete_user');
+        await supabase.rpc('delete_user');
 
         // Sign out after deletion
         await supabase.auth.signOut();

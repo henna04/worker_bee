@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:worker_bee/model/chat_model.dart';
@@ -25,6 +26,8 @@ class _ChatDetailsViewState extends State<ChatDetailsView> {
   late final Stream<List<ChatMessage>> _messagesStream;
   final ScrollController _scrollController = ScrollController();
   List<ChatMessage> _messages = [];
+  ChatMessage? _selectedMessage;
+  ChatMessage? _replyingTo;
 
   @override
   void initState() {
@@ -38,7 +41,8 @@ class _ChatDetailsViewState extends State<ChatDetailsView> {
     _messagesStream = _supabase
         .from('messages')
         .stream(primaryKey: ['id'])
-        .order('created_at')
+        .order('created_at',
+            ascending: true) // Make sure messages are ascending
         .map((maps) {
           final messages = maps
               .map((map) => ChatMessage.fromJson(map))
@@ -49,10 +53,8 @@ class _ChatDetailsViewState extends State<ChatDetailsView> {
                       message.receiverId == currentUserId))
               .toList();
 
-          // Update local messages list
           _messages = messages;
 
-          // Scroll to bottom after receiving new messages
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _scrollToBottom();
           });
@@ -71,6 +73,115 @@ class _ChatDetailsViewState extends State<ChatDetailsView> {
     }
   }
 
+  void _copyMessage(String message) {
+    Clipboard.setData(ClipboardData(text: message));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Message copied to clipboard')),
+    );
+  }
+
+  void _showMessageOptions(ChatMessage message) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Copy'),
+              onTap: () {
+                _copyMessage(message.message);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.reply),
+              title: const Text('Reply'),
+              onTap: () {
+                setState(() {
+                  _replyingTo = message;
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageBubble(ChatMessage message, bool isMe, ThemeData theme) {
+    return GestureDetector(
+      onLongPress: () => _showMessageOptions(message),
+      onTap: () {
+        setState(() {
+          _selectedMessage = _selectedMessage == message ? null : message;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          crossAxisAlignment:
+              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            if (message.replyTo != null) ...[
+              Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.only(bottom: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Replying to: ${message.replyTo}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+            ],
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _selectedMessage == message
+                    ? theme.colorScheme.primary.withValues(alpha: 0.3)
+                    : isMe
+                        ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                        : Colors.grey[300],
+                borderRadius: BorderRadius.circular(12),
+                border: _selectedMessage == message
+                    ? Border.all(color: theme.colorScheme.primary)
+                    : null,
+              ),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.7,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message.message,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat('HH:mm').format(message.createdAt),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _sendMessage() async {
     if (_controller.text.trim().isEmpty) return;
 
@@ -79,31 +190,30 @@ class _ChatDetailsViewState extends State<ChatDetailsView> {
     _controller.clear();
 
     try {
-      // Create new message object
       final newMessage = ChatMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(), // Temporary ID
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         senderId: currentUserId,
         receiverId: widget.workerId,
         message: message,
         createdAt: DateTime.now(),
+        replyTo: _replyingTo?.message,
       );
 
-      // Optimistically add message to local list
       setState(() {
         _messages.add(newMessage);
+        _replyingTo = null;
       });
 
-      // Scroll to bottom immediately after adding new message
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
 
-      // Send message to Supabase
       await _supabase.from('messages').insert({
         'sender_id': currentUserId,
         'receiver_id': widget.workerId,
         'message': message,
         'created_at': DateTime.now().toIso8601String(),
+        'reply_to': _replyingTo?.message,
       });
     } catch (e) {
       if (mounted) {
@@ -163,42 +273,33 @@ class _ChatDetailsViewState extends State<ChatDetailsView> {
                     return Align(
                       alignment:
                           isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isMe
-                              ? theme.colorScheme.primary.withOpacity(0.2)
-                              : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.7,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              message.message,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              DateFormat('HH:mm').format(message.createdAt),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: _buildMessageBubble(message, isMe, theme),
                     );
                   },
                 );
               },
             ),
           ),
+          if (_replyingTo != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              color: theme.colorScheme.surface,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Replying to: ${_replyingTo!.message}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(() => _replyingTo = null),
+                  ),
+                ],
+              ),
+            ),
           Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
@@ -207,7 +308,7 @@ class _ChatDetailsViewState extends State<ChatDetailsView> {
                 BoxShadow(
                   offset: const Offset(0, -2),
                   blurRadius: 4,
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                 ),
               ],
             ),
