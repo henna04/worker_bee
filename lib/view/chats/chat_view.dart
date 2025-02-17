@@ -29,7 +29,6 @@ class _ChatViewState extends State<ChatView> {
         .map((messages) {
           final Map<String, Map<String, dynamic>> conversations = {};
 
-          // Sort messages by timestamp first (newest to oldest)
           messages.sort((a, b) => DateTime.parse(b['created_at'])
               .compareTo(DateTime.parse(a['created_at'])));
 

@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
           ),
           darkTheme: ThemeData.dark(useMaterial3: true),
           themeMode: value.themeMode,
-          home: const AuthCheck(), // Changed this line
+          home: const AuthCheck(), 
         ),
       ),
     );
