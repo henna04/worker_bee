@@ -26,18 +26,25 @@ class _ChatViewState extends State<ChatView> {
         .from('messages')
         .stream(primaryKey: ['id'])
         .order('created_at')
-        .map((messages) {
+        .map((List<Map<String, dynamic>> messages) {
+          // Filter messages for current user
+          final userMessages = messages
+              .where((message) =>
+                  message['sender_id'] == _currentUserId ||
+                  message['receiver_id'] == _currentUserId)
+              .toList();
+
           final Map<String, Map<String, dynamic>> conversations = {};
 
-          messages.sort((a, b) => DateTime.parse(b['created_at'])
+          // Sort messages by date (newest first)
+          userMessages.sort((a, b) => DateTime.parse(b['created_at'])
               .compareTo(DateTime.parse(a['created_at'])));
 
-          for (final message in messages) {
+          for (final message in userMessages) {
             final otherUserId = message['sender_id'] == _currentUserId
                 ? message['receiver_id']
                 : message['sender_id'];
 
-            // Only update if this is a newer message for this conversation
             if (!conversations.containsKey(otherUserId) ||
                 DateTime.parse(message['created_at']).isAfter(
                     DateTime.parse(conversations[otherUserId]!['timestamp']))) {
@@ -50,7 +57,6 @@ class _ChatViewState extends State<ChatView> {
             }
           }
 
-          // Convert to list and sort by timestamp
           final sortedConversations = conversations.values.toList()
             ..sort((a, b) => DateTime.parse(b['timestamp'])
                 .compareTo(DateTime.parse(a['timestamp'])));
