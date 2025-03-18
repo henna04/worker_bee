@@ -8,17 +8,33 @@ class AuthCheck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final session = snapshot.data?.session;
-          if (session != null) {
-            return const DashboardScreen();
+    return Scaffold(
+      body: StreamBuilder<AuthState>(
+        stream: Supabase.instance.client.auth.onAuthStateChange,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  "assets/images/logo.jpg",
+                ),
+                const CircularProgressIndicator(),
+              ],
+            );
+          } else if (snapshot.hasData) {
+            final session = snapshot.data?.session;
+            if (session != null) {
+              return const DashboardScreen();
+            }
+            return const AdminLoginScreen();
+          } else {
+            return const Center(
+              child: Text("Something went wrong"),
+            );
           }
-        }
-        return const AdminLoginScreen();
-      },
+        },
+      ),
     );
   }
 }
