@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-<<<<<<< HEAD
 import 'package:worker_bee/view/home/home_view.dart';
 import 'package:worker_bee/view/login/login_view.dart';
-=======
-import 'package:worker_bee/view/auth_check.dart';
->>>>>>> e22e63be569c07dcf729a02bc777576f9a694039
 import 'package:worker_bee/viewmodel/chat_provider.dart';
 import 'package:worker_bee/viewmodel/thme_provider.dart';
 
@@ -43,11 +39,7 @@ class MyApp extends StatelessWidget {
           ),
           darkTheme: ThemeData.dark(useMaterial3: true),
           themeMode: value.themeMode,
-<<<<<<< HEAD
           home: const HomeView(), // Changed this line
-=======
-          home: const AuthCheck(), 
->>>>>>> e22e63be569c07dcf729a02bc777576f9a694039
         ),
       ),
     );

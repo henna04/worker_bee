@@ -8,7 +8,7 @@ class BookedWorkersScreen extends StatefulWidget {
   const BookedWorkersScreen({super.key});
 
   @override
-  State<BookedWorkersScreen> createState() => _BookedWorkersScreenState();
+  _BookedWorkersScreenState createState() => _BookedWorkersScreenState();
 }
 
 class _BookedWorkersScreenState extends State<BookedWorkersScreen> {

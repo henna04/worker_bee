@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -48,12 +46,12 @@ class _WorkerDetailsState extends State<WorkerDetails> {
   }
 
   Future<void> _bookWorker(Map<String, dynamic> worker) async {
-    log('_bookWorker function called');
+    print('_bookWorker function called');
 
     if (_selectedDate == null ||
         _selectedTime == null ||
         _addressController.text.trim().isEmpty) {
-      log('Validation failed: Missing required fields');
+      print('Validation failed: Missing required fields');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please fill all required fields')),
@@ -63,11 +61,11 @@ class _WorkerDetailsState extends State<WorkerDetails> {
     }
 
     try {
-      log('Starting booking process');
+      print('Starting booking process');
       final userId = _supabase.auth.currentUser;
 
       if (userId == null) {
-        log('User not authenticated');
+        print('User not authenticated');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Please login to book a worker')),
@@ -76,7 +74,7 @@ class _WorkerDetailsState extends State<WorkerDetails> {
         return;
       }
 
-      log('Checking for existing bookings');
+      print('Checking for existing bookings');
       final existingBookings = await _supabase
           .from('bookings')
           .select()
@@ -84,7 +82,7 @@ class _WorkerDetailsState extends State<WorkerDetails> {
           .eq('date', _selectedDate!.toIso8601String())
           .eq('time', '${_selectedTime!.hour}:${_selectedTime!.minute}');
 
-      log('Existing bookings: ${existingBookings.length}');
+      print('Existing bookings: ${existingBookings.length}');
 
       if (existingBookings.isNotEmpty) {
         if (mounted) {
@@ -99,7 +97,7 @@ class _WorkerDetailsState extends State<WorkerDetails> {
         return;
       }
 
-      log('Creating new booking');
+      print('Creating new booking');
       // Remove payment_status from the insert
       final booking = await _supabase
           .from('bookings')
@@ -117,15 +115,15 @@ class _WorkerDetailsState extends State<WorkerDetails> {
           .select()
           .single();
 
-      log('Booking created successfully');
+      print('Booking created successfully');
 
       if (mounted) {
         Navigator.pop(context);
         _showPaymentDialog(worker, booking);
       }
     } catch (e, stackTrace) {
-      log('Error in booking: $e');
-      log('Stack trace: $stackTrace');
+      print('Error in booking: $e');
+      print('Stack trace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -182,20 +180,6 @@ class _WorkerDetailsState extends State<WorkerDetails> {
                   ],
                 ),
                 value: "upi",
-                groupValue: _selectedPaymentMethod,
-                onChanged: (value) {
-                  setState(() => _selectedPaymentMethod = value);
-                },
-              ),
-              RadioListTile<String>(
-                title: const Row(
-                  children: [
-                    Icon(Icons.account_balance),
-                    Gap(8),
-                    Text("Cash"),
-                  ],
-                ),
-                value: "cash",
                 groupValue: _selectedPaymentMethod,
                 onChanged: (value) {
                   setState(() => _selectedPaymentMethod = value);
