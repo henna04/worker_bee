@@ -53,7 +53,7 @@ class _HomeViewState extends State<HomeView> {
           .from('users')
           .select()
           .eq('is_verified', true)
-          .eq('is_available', true) 
+          .eq('is_available', true)
           .neq('id', Supabase.instance.client.auth.currentUser!.id)
           .order('ratings', ascending: false);
 
@@ -151,6 +151,8 @@ class _HomeViewState extends State<HomeView> {
                                     style: theme.textTheme.bodyLarge!.copyWith(
                                       color: theme.colorScheme.onPrimary,
                                     ),
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),

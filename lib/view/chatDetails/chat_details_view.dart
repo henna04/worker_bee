@@ -149,7 +149,7 @@ class _ChatDetailsViewState extends State<ChatDetailsView> {
                     ? theme.colorScheme.primary.withValues(alpha: 0.3)
                     : isMe
                         ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                        : Colors.grey[300],
+                        : theme.colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(12),
                 border: _selectedMessage == message
                     ? Border.all(color: theme.colorScheme.primary)
