@@ -7,11 +7,11 @@ import 'package:worker_bee/viewmodel/thme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: 'https://dcgjcioztrkkjpeucgyo.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjZ2pjaW96dHJra2pwZXVjZ3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg1MDczMjEsImV4cCI6MjA1NDA4MzMyMX0.d8BdZAm7bWOZ41NMhGqhiET4xeUsS1D-Aaj_vzA5D4Q',
+    await Supabase.initialize(
+    url: 'https://qddzlhdbdpcnnpoxwnvo.supabase.co',
+    anonKey: 'sb_publishable_YqcQAC7HP1b0ODSte2FnAQ_vOE0jBv4',
   );
+        
   runApp(const MyApp());
 }
 
