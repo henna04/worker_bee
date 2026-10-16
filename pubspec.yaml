@@ -36,7 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   gap: ^3.0.1
-  sign_in_button: ^3.2.0
+  sign_in_button: 5.0.0
   image_picker: ^1.1.2
   google_nav_bar: ^5.0.7
   carousel_slider: ^5.0.0
@@ -49,6 +49,7 @@ dependencies:
   flutter_rating_bar: ^4.0.1
   provider: ^6.1.2
   shared_preferences: ^2.5.2
+  font_awesome_flutter: 11.0.0
 
 dev_dependencies:
   flutter_test:
